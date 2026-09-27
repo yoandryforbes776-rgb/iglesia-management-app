@@ -1,4 +1,4 @@
-# Build 3 · 2026-09-27T23:09:44Z · success
+# Build 4 · 2026-09-27T23:21:07Z · success
 
 ## Errores detectados
 
@@ -18,10 +18,10 @@ Daemon will be stopped at the end of the build
 > Task :app:mapDebugSourceSetPaths
 > Task :app:generateDebugResources
 > Task :app:packageDebugResources
-> Task :app:mergeDebugResources
 > Task :app:createDebugCompatibleScreenManifests
 > Task :app:extractDeepLinksDebug
 > Task :app:parseDebugLocalResources
+> Task :app:mergeDebugResources
 > Task :app:processDebugMainManifest
 > Task :app:processDebugManifest
 > Task :app:processDebugManifestForPackage
@@ -48,7 +48,6 @@ Unable to strip the following libraries, packaging them as they are: libandroidx
 > Task :app:validateSigningDebug
 > Task :app:writeDebugAppMetadata
 > Task :app:writeDebugSigningConfigVersions
-
 > Task :app:compileDebugKotlin
 w: file:///home/runner/work/iglesia-management-app/iglesia-management-app/app/src/main/java/com/iglesiaflow/gestion/ui/components/FormComponents.kt:106:18 'fun Modifier.menuAnchor(): Modifier' is deprecated. Use overload that takes MenuAnchorType and enabled parameters.
 w: file:///home/runner/work/iglesia-management-app/iglesia-management-app/app/src/main/java/com/iglesiaflow/gestion/ui/screens/dashboard/DashboardScreen.kt:96:41 'val Icons.Filled.TrendingUp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingUp.
@@ -65,9 +64,9 @@ w: file:///home/runner/work/iglesia-management-app/iglesia-management-app/app/sr
 > Task :app:packageDebug
 > Task :app:createDebugApkListingFileRedirect
 > Task :app:assembleDebug
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1790550207522.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1790550750862.json
 
-BUILD SUCCESSFUL in 3m 14s
+BUILD SUCCESSFUL in 4m 28s
 43 actionable tasks: 43 executed
 
 ==> ci-logs/release.log <==
@@ -87,10 +86,10 @@ Unable to strip the following libraries, packaging them as they are: libandroidx
 > Task :app:mergeReleaseNativeDebugMetadata NO-SOURCE
 > Task :app:buildKotlinToolingMetadata
 > Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
-> Task :app:generateReleaseBuildConfig
 > Task :app:checkReleaseDuplicateClasses
-> Task :app:checkReleaseAarMetadata
+> Task :app:generateReleaseBuildConfig
 > Task :app:generateReleaseResValues FROM-CACHE
+> Task :app:checkReleaseAarMetadata
 > Task :app:mapReleaseSourceSetPaths
 > Task :app:generateReleaseResources
 > Task :app:packageReleaseResources
@@ -100,6 +99,7 @@ Unable to strip the following libraries, packaging them as they are: libandroidx
 > Task :app:processReleaseMainManifest
 > Task :app:processReleaseManifest
 > Task :app:javaPreCompileRelease FROM-CACHE
+> Task :app:processReleaseManifestForPackage
 > Task :app:extractProguardFiles
 > Task :app:mergeReleaseStartupProfile
 > Task :app:mergeReleaseShaders
@@ -108,7 +108,6 @@ Unable to strip the following libraries, packaging them as they are: libandroidx
 > Task :app:mergeReleaseAssets
 > Task :app:compressReleaseAssets
 > Task :app:extractReleaseVersionControlInfo
-> Task :app:processReleaseManifestForPackage
 > Task :app:processApplicationManifestReleaseForBundle
 > Task :app:mergeReleaseResources
 > Task :app:collectReleaseDependencies
@@ -119,7 +118,6 @@ Unable to strip the following libraries, packaging them as they are: libandroidx
 > Task :app:processReleaseResources
 > Task :app:bundleReleaseResources
 > Task :app:kspReleaseKotlin
-
 > Task :app:compileReleaseKotlin
 w: file:///home/runner/work/iglesia-management-app/iglesia-management-app/app/src/main/java/com/iglesiaflow/gestion/ui/components/FormComponents.kt:106:18 'fun Modifier.menuAnchor(): Modifier' is deprecated. Use overload that takes MenuAnchorType and enabled parameters.
 w: file:///home/runner/work/iglesia-management-app/iglesia-management-app/app/src/main/java/com/iglesiaflow/gestion/ui/screens/dashboard/DashboardScreen.kt:96:41 'val Icons.Filled.TrendingUp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingUp.
@@ -129,8 +127,8 @@ w: file:///home/runner/work/iglesia-management-app/iglesia-management-app/app/sr
 > Task :app:hiltJavaCompileRelease
 > Task :app:processReleaseJavaRes
 > Task :app:transformReleaseClassesWithAsm
-> Task :app:mergeReleaseGeneratedProguardFiles
 > Task :app:mergeReleaseJavaResource
+> Task :app:mergeReleaseGeneratedProguardFiles
 > Task :app:expandReleaseArtProfileWildcards
 > Task :app:minifyReleaseWithR8
 
@@ -177,7 +175,7 @@ Info: Proguard configuration rule does not match anything: `-keepclassmembers cl
 > Task :app:packageRelease
 > Task :app:createReleaseApkListingFileRedirect
 > Task :app:assembleRelease
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_5-1790550400186.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_5-1790551017816.json
 
-BUILD SUCCESSFUL in 2m 58s
+BUILD SUCCESSFUL in 4m 3s
 53 actionable tasks: 48 executed, 5 from cache
