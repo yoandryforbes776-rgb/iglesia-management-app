@@ -1,0 +1,77 @@
+name: Android CI
+
+on:
+  push:
+    branches:
+      - 'arena/**'
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Compilar APK (debug + release firmada)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Configurar Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Configurar Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Generar Gradle wrapper
+        run: gradle wrapper --gradle-version 8.9
+
+      - name: Generar keystore de firma
+        env:
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD || 'iglesiaflow' }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD || 'iglesiaflow' }}
+        run: |
+          keytool -genkeypair -v \
+            -keystore "$GITHUB_WORKSPACE/iglesiaflow-release.jks" \
+            -alias iglesiaflow \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass "$SIGNING_STORE_PASSWORD" \
+            -keypass "$SIGNING_KEY_PASSWORD" \
+            -dname "CN=IglesiaFlow, OU=TI, O=Iglesia, L=Madrid, S=Madrid, C=ES"
+
+      - name: Compilar APK debug
+        run: ./gradlew :app:assembleDebug --stacktrace --no-daemon
+
+      - name: Compilar APK release firmada
+        env:
+          SIGNING_STORE_FILE: ${{ github.workspace }}/iglesiaflow-release.jks
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD || 'iglesiaflow' }}
+          SIGNING_KEY_ALIAS: iglesiaflow
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD || 'iglesiaflow' }}
+        run: ./gradlew :app:assembleRelease --stacktrace --no-daemon
+
+      - name: Renombrar APKs
+        run: |
+          mkdir -p artifacts
+          cp app/build/outputs/apk/debug/app-debug.apk artifacts/IglesiaFlow-debug.apk
+          cp app/build/outputs/apk/release/app-release.apk artifacts/IglesiaFlow-release.apk
+          ls -lh artifacts
+
+      - name: Publicar artefactos
+        uses: actions/upload-artifact@v4
+        with:
+          name: IglesiaFlow-APK
+          path: artifacts/*.apk
+          retention-days: 30
