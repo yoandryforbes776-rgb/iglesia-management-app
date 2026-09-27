@@ -5,17 +5,24 @@ on:
     branches:
       - 'arena/**'
       - main
+    paths-ignore:
+      - 'ci-logs/**'
+      - 'docs/**'
+      - '**/*.md'
   workflow_dispatch:
 
 concurrency:
   group: android-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Compilar APK (debug + release firmada)
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
 
     steps:
       - name: Checkout
@@ -27,8 +34,15 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Configurar Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Preparar Android SDK
+        run: |
+          set -euxo pipefail
+          echo "ANDROID_HOME=${ANDROID_HOME:-}"
+          echo "ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT:-}"
+          ls "${ANDROID_HOME:-/usr/local/lib/android/sdk}" || true
+          yes | "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+          "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" \
+            "platform-tools" "platforms;android-34" "build-tools;34.0.0" || true
 
       - name: Configurar Gradle 8.9
         uses: gradle/actions/setup-gradle@v4
@@ -40,8 +54,8 @@ jobs:
 
       - name: Generar keystore de firma
         env:
-          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD || 'iglesiaflow' }}
-          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD || 'iglesiaflow' }}
+          SIGNING_STORE_PASSWORD: iglesiaflow
+          SIGNING_KEY_PASSWORD: iglesiaflow
         run: |
           keytool -genkeypair -v \
             -keystore "$GITHUB_WORKSPACE/iglesiaflow-release.jks" \
@@ -52,17 +66,22 @@ jobs:
             -dname "CN=IglesiaFlow, OU=TI, O=Iglesia, L=Madrid, S=Madrid, C=ES"
 
       - name: Compilar APK debug
-        run: ./gradlew :app:assembleDebug --stacktrace --no-daemon
+        run: |
+          mkdir -p ci-logs
+          set -o pipefail
+          ./gradlew :app:assembleDebug --stacktrace --no-daemon 2>&1 | tee ci-logs/debug.log
 
       - name: Compilar APK release firmada
         env:
           SIGNING_STORE_FILE: ${{ github.workspace }}/iglesiaflow-release.jks
-          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD || 'iglesiaflow' }}
+          SIGNING_STORE_PASSWORD: iglesiaflow
           SIGNING_KEY_ALIAS: iglesiaflow
-          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD || 'iglesiaflow' }}
-        run: ./gradlew :app:assembleRelease --stacktrace --no-daemon
+          SIGNING_KEY_PASSWORD: iglesiaflow
+        run: |
+          set -o pipefail
+          ./gradlew :app:assembleRelease --stacktrace --no-daemon 2>&1 | tee ci-logs/release.log
 
-      - name: Renombrar APKs
+      - name: Preparar artefactos
         run: |
           mkdir -p artifacts
           cp app/build/outputs/apk/debug/app-debug.apk artifacts/IglesiaFlow-debug.apk
@@ -75,3 +94,39 @@ jobs:
           name: IglesiaFlow-APK
           path: artifacts/*.apk
           retention-days: 30
+
+      - name: Publicar release de GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0-build${{ github.run_number }}
+          name: IglesiaFlow 1.0.0 (build ${{ github.run_number }})
+          body: |
+            APK de IglesiaFlow generada automáticamente desde `${{ github.ref_name }}`.
+
+            * `IglesiaFlow-release.apk`: versión firmada y optimizada (R8).
+            * `IglesiaFlow-debug.apk`: versión de depuración.
+
+            Credenciales de demostración: `admin@iglesia.org` / `admin123`.
+          files: artifacts/*.apk
+
+      - name: Guardar log de compilación en el repositorio
+        if: always()
+        run: |
+          mkdir -p ci-logs
+          {
+            echo "# Build ${{ github.run_number }} · $(date -u +%FT%TZ) · ${{ job.status }}"
+            echo
+            echo "## Errores detectados"
+            grep -nE "^e: |error: |FAILURE|Caused by|Unresolved reference|> Task .* FAILED" ci-logs/*.log | head -200 || true
+            echo
+            echo "## Cola del log"
+            tail -n 400 ci-logs/*.log || true
+          } > ci-logs/summary.md
+          cat ci-logs/summary.md >> "$GITHUB_STEP_SUMMARY"
+          rm -f ci-logs/debug.log ci-logs/release.log
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add ci-logs/summary.md
+          git commit -m "ci: log de compilación build ${{ github.run_number }} [skip ci]" || exit 0
+          git pull --rebase origin "${{ github.ref_name }}" || true
+          git push origin HEAD:"${{ github.ref_name }}"
