@@ -130,3 +130,70 @@ jobs:
           git commit -m "ci: log de compilación build ${{ github.run_number }} [skip ci]" || exit 0
           git pull --rebase origin "${{ github.ref_name }}" || true
           git push origin HEAD:"${{ github.ref_name }}"
+
+  smoke-test:
+    name: Prueba de humo en emulador
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Descargar APKs
+        uses: actions/download-artifact@v4
+        with:
+          name: IglesiaFlow-APK
+          path: artifacts
+
+      - name: Habilitar KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Arrancar emulador y probar la APK
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: pixel_5
+          disable-animations: true
+          script: |
+            mkdir -p ci-logs
+            adb install -r artifacts/IglesiaFlow-release.apk
+            adb logcat -c
+            adb shell am start -W -n com.iglesiaflow.gestion/.MainActivity
+            sleep 25
+            adb exec-out screencap -p > ci-logs/smoke-login.png
+            adb shell input tap 540 1600 || true
+            sleep 3
+            adb logcat -d > /tmp/logcat.txt
+            adb shell dumpsys activity activities | grep -i "topResumedActivity" > ci-logs/smoke-activity.txt || true
+            {
+              echo "# Prueba de humo"
+              echo
+              cat ci-logs/smoke-activity.txt || true
+              echo
+              echo "## Errores relevantes en logcat"
+              grep -E "FATAL EXCEPTION|AndroidRuntime|iglesiaflow" /tmp/logcat.txt | tail -60 || true
+            } > ci-logs/smoke.md
+            if grep -q "FATAL EXCEPTION" /tmp/logcat.txt; then
+              echo "La aplicación se ha bloqueado al arrancar"
+              grep -A 30 "FATAL EXCEPTION" /tmp/logcat.txt | tail -60 >> ci-logs/smoke.md
+              exit 1
+            fi
+
+      - name: Guardar resultado de la prueba en el repositorio
+        if: always()
+        run: |
+          cat ci-logs/smoke.md >> "$GITHUB_STEP_SUMMARY" || true
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add ci-logs/smoke.md ci-logs/smoke-login.png ci-logs/smoke-activity.txt || true
+          git commit -m "ci: prueba de humo build ${{ github.run_number }} [skip ci]" || exit 0
+          git pull --rebase origin "${{ github.ref_name }}" || true
+          git push origin HEAD:"${{ github.ref_name }}"
