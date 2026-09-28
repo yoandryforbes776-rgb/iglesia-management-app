@@ -32,18 +32,51 @@ jobs:
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
         run: |
+          mkdir -p ci-logs
+          if [ -z "${GOOGLE_SERVICES_JSON:-}" ] && [ ! -f app/google-services.json ]; then
+            echo "FIREBASE_STATE=no configurado (APK solo-local)" >> "$GITHUB_ENV"
+            echo "Firebase: NO configurado. No existe el secreto GOOGLE_SERVICES_JSON ni el archivo app/google-services.json." \
+              | tee ci-logs/firebase.txt
+            exit 0
+          fi
+
           if [ -n "${GOOGLE_SERVICES_JSON:-}" ]; then
             if printf '%s' "$GOOGLE_SERVICES_JSON" | head -c 1 | grep -q '{'; then
               printf '%s' "$GOOGLE_SERVICES_JSON" > app/google-services.json
             else
               printf '%s' "$GOOGLE_SERVICES_JSON" | tr -d '[:space:]' | base64 -d > app/google-services.json
             fi
-            echo "google-services.json aplicado ($(wc -c < app/google-services.json) bytes): la APK llevará Firebase activo."
-            echo "- Firebase: **configurado** desde el secreto GOOGLE_SERVICES_JSON" >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "Sin secreto GOOGLE_SERVICES_JSON: la APK se compila en modo solo-local."
-            echo "- Firebase: **no configurado** (APK solo-local)" >> "$GITHUB_STEP_SUMMARY"
           fi
+
+          if ! python3 -c "import json,sys; json.load(open('app/google-services.json'))" 2>/dev/null; then
+            echo "Firebase: el contenido de google-services.json NO es un JSON válido. Vuelve a copiarlo entero desde el archivo descargado." \
+              | tee ci-logs/firebase.txt
+            exit 1
+          fi
+
+          PKG=$(python3 -c "import json;d=json.load(open('app/google-services.json'));print(','.join(c['client_info']['android_client_info']['package_name'] for c in d['client']))")
+          PROJ=$(python3 -c "import json;print(json.load(open('app/google-services.json'))['project_info']['project_id'])")
+          DBURL=$(python3 -c "import json;print(json.load(open('app/google-services.json'))['project_info'].get('firebase_url',''))")
+
+          {
+            echo "Firebase: archivo aplicado ($(wc -c < app/google-services.json) bytes)"
+            echo "- project_id: $PROJ"
+            echo "- package_name(s): $PKG"
+            echo "- firebase_url (Realtime Database): ${DBURL:-<vacío>}"
+          } | tee ci-logs/firebase.txt
+
+          if ! echo "$PKG" | grep -q "com.iglesiaflow.gestion"; then
+            echo "ERROR: el paquete registrado en Firebase no es com.iglesiaflow.gestion. Registra una app Android con ese paquete exacto y descarga de nuevo el archivo." \
+              | tee -a ci-logs/firebase.txt
+            exit 1
+          fi
+
+          if [ -z "$DBURL" ]; then
+            echo "AVISO: el archivo no trae firebase_url: falta crear la Realtime Database en la consola, o hay que volver a descargar google-services.json despues de crearla. La sincronizacion no funcionara hasta arreglarlo." \
+              | tee -a ci-logs/firebase.txt
+          fi
+
+          echo "FIREBASE_STATE=configurado (proyecto $PROJ)" >> "$GITHUB_ENV"
 
       - name: Configurar JDK 17
         uses: actions/setup-java@v4
@@ -124,6 +157,8 @@ jobs:
             * `IglesiaFlow-debug.apk`: versión de depuración.
 
             Credenciales de demostración: `admin@iglesia.org` / `admin123`.
+
+            Firebase: ${{ env.FIREBASE_STATE }}
           files: artifacts/*.apk
 
       - name: Guardar log de compilación en el repositorio
@@ -133,6 +168,9 @@ jobs:
           {
             echo "# Build ${{ github.run_number }} · $(date -u +%FT%TZ) · ${{ job.status }}"
             echo
+            echo "## Firebase"
+            cat ci-logs/firebase.txt 2>/dev/null || echo "(sin datos)"
+            echo
             echo "## Errores detectados"
             grep -nE "^e: |error: |FAILURE|Caused by|Unresolved reference|> Task .* FAILED" ci-logs/*.log | head -200 || true
             echo
@@ -140,7 +178,7 @@ jobs:
             tail -n 400 ci-logs/*.log || true
           } > ci-logs/summary.md
           cat ci-logs/summary.md >> "$GITHUB_STEP_SUMMARY"
-          rm -f ci-logs/debug.log ci-logs/release.log
+          rm -f ci-logs/debug.log ci-logs/release.log ci-logs/firebase.txt
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add ci-logs/summary.md
