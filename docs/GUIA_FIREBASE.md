@@ -28,6 +28,8 @@ Tiempo estimado: 20 minutos.
    - **Certificado SHA-1**: déjalo vacío (no hace falta para esto).
 3. Pulsa **Registrar app**.
 4. Pulsa **Descargar google-services.json**. Guarda ese archivo, es la “llave” de tu proyecto.
+   ⚠️ **Vuelve a descargarlo al terminar la Parte 3**: el archivo solo incluye la dirección de la
+   base de datos si esta ya existía cuando lo descargaste.
 5. En los pasos siguientes (“Agrega el SDK de Firebase”, “Verificación”) pulsa **Siguiente** y al
    final **Continuar a la consola**. Esa parte ya está hecha en el código.
 

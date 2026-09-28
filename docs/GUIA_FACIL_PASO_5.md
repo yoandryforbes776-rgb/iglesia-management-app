@@ -8,6 +8,12 @@ Piénsalo así: Firebase es una casa que ya construiste. El archivo `google-serv
 
 ---
 
+> ⚠️ **Antes de empezar**: si descargaste `google-services.json` *antes* de crear la Realtime
+> Database, ese archivo no trae la dirección de la base de datos. Descárgalo otra vez desde
+> Firebase → ⚙️ **Configuración del proyecto** → abajo, en **Tus apps**, botón
+> **google-services.json**. Con el archivo nuevo, repite el paso 5.2 (edita el secreto que ya
+> creaste y pega el contenido nuevo).
+
 ## PASO 5 — Darle la llave a la app
 
 ### 5.1 Abre la llave y cópiala
@@ -99,3 +105,4 @@ Arriba en la pantalla debe decir: *Firebase: configurado* y *Conexión: en líne
 | "Error: permission denied" | Falta el acceso anónimo | Firebase → Authentication → Sign-in method → **Anónimo** activado |
 | El otro móvil no ve nada | Códigos de iglesia distintos | Escribe el mismo código en los dos y pulsa Guardar |
 | Dice "3 pendientes" y no baja | Sin internet | Conecta el wifi y pulsa Sincronizar ahora |
+| "Conexión: sin conexión" aun con wifi | Al archivo le falta la dirección de la base de datos | Copia la URL que aparece arriba en Firebase → Realtime Database (algo como `https://iglesia-flow-default-rtdb.firebaseio.com`) y pégala en el campo **URL de la base de datos (opcional)** de la app → **Guardar URL** |
