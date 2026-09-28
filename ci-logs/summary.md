@@ -1,4 +1,4 @@
-# Build 6 · 2026-09-28T01:52:23Z · success
+# Build 7 · 2026-09-28T02:05:38Z · success
 
 ## Errores detectados
 
@@ -24,30 +24,30 @@ Daemon will be stopped at the end of the build
 > Task :app:mergeDebugResources
 > Task :app:processDebugMainManifest
 > Task :app:processDebugManifest
-> Task :app:processDebugManifestForPackage
 > Task :app:javaPreCompileDebug
 > Task :app:mergeDebugShaders
 > Task :app:compileDebugShaders NO-SOURCE
 > Task :app:generateDebugAssets UP-TO-DATE
 > Task :app:mergeDebugAssets
 > Task :app:compressDebugAssets
+> Task :app:processDebugManifestForPackage
+> Task :app:desugarDebugFileDependencies
 > Task :app:processDebugResources
 > Task :app:l8DexDesugarLibDebug
-> Task :app:desugarDebugFileDependencies
-> Task :app:mergeDebugStartupProfile
-> Task :app:mergeDebugJniLibFolders
 > Task :app:checkDebugDuplicateClasses
-> Task :app:mergeDebugNativeLibs
+> Task :app:mergeDebugStartupProfile
 > Task :app:kspDebugKotlin
 > Task :app:mergeExtDexDebug
+> Task :app:mergeDebugJniLibFolders
 > Task :app:mergeLibDexDebug
+> Task :app:mergeDebugNativeLibs
+> Task :app:validateSigningDebug
+> Task :app:writeDebugAppMetadata
+> Task :app:writeDebugSigningConfigVersions
 
 > Task :app:stripDebugDebugSymbols
 Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so, libdatastore_shared_counter.so, libsqlcipher.so.
 
-> Task :app:validateSigningDebug
-> Task :app:writeDebugAppMetadata
-> Task :app:writeDebugSigningConfigVersions
 > Task :app:compileDebugKotlin
 w: file:///home/runner/work/iglesia-management-app/iglesia-management-app/app/src/main/java/com/iglesiaflow/gestion/ui/components/FormComponents.kt:106:18 'fun Modifier.menuAnchor(): Modifier' is deprecated. Use overload that takes MenuAnchorType and enabled parameters.
 w: file:///home/runner/work/iglesia-management-app/iglesia-management-app/app/src/main/java/com/iglesiaflow/gestion/ui/screens/dashboard/DashboardScreen.kt:96:41 'val Icons.Filled.TrendingUp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingUp.
@@ -64,9 +64,9 @@ w: file:///home/runner/work/iglesia-management-app/iglesia-management-app/app/sr
 > Task :app:packageDebug
 > Task :app:createDebugApkListingFileRedirect
 > Task :app:assembleDebug
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1790559955045.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1790560683440.json
 
-BUILD SUCCESSFUL in 3m 26s
+BUILD SUCCESSFUL in 3m 51s
 43 actionable tasks: 43 executed
 
 ==> ci-logs/release.log <==
@@ -99,9 +99,8 @@ Unable to strip the following libraries, packaging them as they are: libandroidx
 > Task :app:processReleaseMainManifest
 > Task :app:processReleaseManifest
 > Task :app:javaPreCompileRelease FROM-CACHE
-> Task :app:mergeReleaseResources
-> Task :app:extractProguardFiles
 > Task :app:processReleaseManifestForPackage
+> Task :app:extractProguardFiles
 > Task :app:mergeReleaseStartupProfile
 > Task :app:mergeReleaseShaders
 > Task :app:compileReleaseShaders NO-SOURCE
@@ -114,6 +113,7 @@ Unable to strip the following libraries, packaging them as they are: libandroidx
 > Task :app:sdkReleaseDependencyData
 > Task :app:validateSigningRelease
 > Task :app:writeReleaseAppMetadata
+> Task :app:mergeReleaseResources
 > Task :app:writeReleaseSigningConfigVersions
 > Task :app:processReleaseResources
 > Task :app:bundleReleaseResources
@@ -128,8 +128,8 @@ w: file:///home/runner/work/iglesia-management-app/iglesia-management-app/app/sr
 > Task :app:hiltJavaCompileRelease
 > Task :app:processReleaseJavaRes
 > Task :app:transformReleaseClassesWithAsm
-> Task :app:mergeReleaseGeneratedProguardFiles
 > Task :app:mergeReleaseJavaResource
+> Task :app:mergeReleaseGeneratedProguardFiles
 > Task :app:expandReleaseArtProfileWildcards
 > Task :app:minifyReleaseWithR8
 
@@ -176,7 +176,7 @@ Info: Proguard configuration rule does not match anything: `-keepclassmembers cl
 > Task :app:packageRelease
 > Task :app:createReleaseApkListingFileRedirect
 > Task :app:assembleRelease
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_5-1790560159802.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_5-1790560913231.json
 
-BUILD SUCCESSFUL in 2m 57s
+BUILD SUCCESSFUL in 3m 38s
 53 actionable tasks: 48 executed, 5 from cache
