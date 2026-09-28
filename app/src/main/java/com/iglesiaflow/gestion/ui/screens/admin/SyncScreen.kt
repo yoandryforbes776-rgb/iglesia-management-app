@@ -85,6 +85,13 @@ fun SyncScreen(
                                 (state.status.lastSyncAt?.let { DateTimeUtils.formatDateTime(it) } ?: "nunca"),
                             style = MaterialTheme.typography.bodySmall
                         )
+                        state.status.error?.let {
+                            Text(
+                                "Error: $it",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Button(onClick = viewModel::syncNow) { Text("Sincronizar ahora") }
                         }

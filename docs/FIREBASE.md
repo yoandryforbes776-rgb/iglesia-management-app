@@ -29,6 +29,9 @@ El `build.gradle.kts` aplica el plugin de Google Services **solo si ese archivo 
 
 ## 2 bis. Realtime Database: sincronización en tiempo real (recomendado)
 
+> ¿Primera vez? Sigue la versión con capturas de pantalla mentales y clic a clic:
+> [docs/GUIA_FIREBASE.md](GUIA_FIREBASE.md).
+
 La app replica los datos entre dispositivos con **Realtime Database**, que en el plan Spark
 incluye 1 GB almacenado, 10 GB/mes de descarga y 100 conexiones simultáneas: de sobra para una
 iglesia. Pasos:
@@ -52,7 +55,10 @@ iglesia. Pasos:
 }
 ```
 
-   Si todavía no usas Firebase Authentication y quieres probar rápido, puedes usar
+   Estas reglas exigen sesión iniciada: activa **Authentication → Sign-in method → Anónimo**.
+   La app abre esa sesión anónima por su cuenta (el login de usuarios sigue siendo local).
+
+   Si quieres probar rápido sin Authentication, puedes usar
    `".read": true, ".write": true` **solo durante las pruebas**: cualquiera con la URL podría leer
    los datos de la congregación.
 

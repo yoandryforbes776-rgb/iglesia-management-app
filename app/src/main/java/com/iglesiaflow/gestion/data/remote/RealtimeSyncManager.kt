@@ -1,6 +1,7 @@
 package com.iglesiaflow.gestion.data.remote
 
 import android.util.Log
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -125,7 +126,21 @@ class RealtimeSyncManager @Inject constructor(
         scope.launch { pushPending() }
     }
 
+    /**
+     * Las reglas recomendadas exigen `auth != null`, así que abrimos una sesión
+     * anónima de Firebase Auth (no pide datos al usuario; la autenticación real
+     * de la app sigue siendo local). Si el proveedor anónimo está desactivado se
+     * continúa igualmente por si las reglas son públicas.
+     */
+    private suspend fun ensureSignedIn() {
+        runCatching {
+            val auth = Firebase.auth
+            if (auth.currentUser == null) auth.signInAnonymously().await()
+        }.onFailure { Log.w(TAG, "Sin sesión anónima de Firebase", it) }
+    }
+
     private suspend fun attach(churchId: String) {
+        ensureSignedIn()
         val root = Firebase.database.reference.child(CHURCHES).child(churchId)
         currentRoot = root
 
