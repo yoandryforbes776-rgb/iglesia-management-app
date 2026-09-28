@@ -1,4 +1,4 @@
-# Build 7 · 2026-09-28T02:05:38Z · success
+# Build 8 · 2026-09-28T14:25:48Z · success
 
 ## Errores detectados
 
@@ -30,15 +30,14 @@ Daemon will be stopped at the end of the build
 > Task :app:generateDebugAssets UP-TO-DATE
 > Task :app:mergeDebugAssets
 > Task :app:compressDebugAssets
-> Task :app:processDebugManifestForPackage
 > Task :app:desugarDebugFileDependencies
-> Task :app:processDebugResources
 > Task :app:l8DexDesugarLibDebug
-> Task :app:checkDebugDuplicateClasses
 > Task :app:mergeDebugStartupProfile
-> Task :app:kspDebugKotlin
-> Task :app:mergeExtDexDebug
 > Task :app:mergeDebugJniLibFolders
+> Task :app:processDebugManifestForPackage
+> Task :app:checkDebugDuplicateClasses
+> Task :app:processDebugResources
+> Task :app:mergeExtDexDebug
 > Task :app:mergeLibDexDebug
 > Task :app:mergeDebugNativeLibs
 > Task :app:validateSigningDebug
@@ -48,6 +47,7 @@ Daemon will be stopped at the end of the build
 > Task :app:stripDebugDebugSymbols
 Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so, libdatastore_shared_counter.so, libsqlcipher.so.
 
+> Task :app:kspDebugKotlin
 > Task :app:compileDebugKotlin
 w: file:///home/runner/work/iglesia-management-app/iglesia-management-app/app/src/main/java/com/iglesiaflow/gestion/ui/components/FormComponents.kt:106:18 'fun Modifier.menuAnchor(): Modifier' is deprecated. Use overload that takes MenuAnchorType and enabled parameters.
 w: file:///home/runner/work/iglesia-management-app/iglesia-management-app/app/src/main/java/com/iglesiaflow/gestion/ui/screens/dashboard/DashboardScreen.kt:96:41 'val Icons.Filled.TrendingUp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingUp.
@@ -64,9 +64,9 @@ w: file:///home/runner/work/iglesia-management-app/iglesia-management-app/app/sr
 > Task :app:packageDebug
 > Task :app:createDebugApkListingFileRedirect
 > Task :app:assembleDebug
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1790560683440.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_5-1790605043638.json
 
-BUILD SUCCESSFUL in 3m 51s
+BUILD SUCCESSFUL in 4m 23s
 43 actionable tasks: 43 executed
 
 ==> ci-logs/release.log <==
@@ -82,8 +82,8 @@ Daemon will be stopped at the end of the build
 Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so, libdatastore_shared_counter.so, libsqlcipher.so.
 
 > Task :app:extractReleaseNativeSymbolTables
-> Task :app:expandReleaseL8ArtProfileWildcards
 > Task :app:mergeReleaseNativeDebugMetadata NO-SOURCE
+> Task :app:expandReleaseL8ArtProfileWildcards
 > Task :app:buildKotlinToolingMetadata
 > Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
 > Task :app:checkReleaseDuplicateClasses
@@ -99,26 +99,25 @@ Unable to strip the following libraries, packaging them as they are: libandroidx
 > Task :app:processReleaseMainManifest
 > Task :app:processReleaseManifest
 > Task :app:javaPreCompileRelease FROM-CACHE
-> Task :app:processReleaseManifestForPackage
 > Task :app:extractProguardFiles
 > Task :app:mergeReleaseStartupProfile
 > Task :app:mergeReleaseShaders
 > Task :app:compileReleaseShaders NO-SOURCE
 > Task :app:generateReleaseAssets UP-TO-DATE
 > Task :app:mergeReleaseAssets
+> Task :app:processReleaseManifestForPackage
 > Task :app:compressReleaseAssets
 > Task :app:extractReleaseVersionControlInfo
 > Task :app:processApplicationManifestReleaseForBundle
 > Task :app:collectReleaseDependencies
+> Task :app:mergeReleaseResources
 > Task :app:sdkReleaseDependencyData
 > Task :app:validateSigningRelease
 > Task :app:writeReleaseAppMetadata
-> Task :app:mergeReleaseResources
 > Task :app:writeReleaseSigningConfigVersions
 > Task :app:processReleaseResources
 > Task :app:bundleReleaseResources
 > Task :app:kspReleaseKotlin
-
 > Task :app:compileReleaseKotlin
 w: file:///home/runner/work/iglesia-management-app/iglesia-management-app/app/src/main/java/com/iglesiaflow/gestion/ui/components/FormComponents.kt:106:18 'fun Modifier.menuAnchor(): Modifier' is deprecated. Use overload that takes MenuAnchorType and enabled parameters.
 w: file:///home/runner/work/iglesia-management-app/iglesia-management-app/app/src/main/java/com/iglesiaflow/gestion/ui/screens/dashboard/DashboardScreen.kt:96:41 'val Icons.Filled.TrendingUp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingUp.
@@ -176,7 +175,7 @@ Info: Proguard configuration rule does not match anything: `-keepclassmembers cl
 > Task :app:packageRelease
 > Task :app:createReleaseApkListingFileRedirect
 > Task :app:assembleRelease
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_5-1790560913231.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_6-1790605305158.json
 
-BUILD SUCCESSFUL in 3m 38s
+BUILD SUCCESSFUL in 3m 55s
 53 actionable tasks: 48 executed, 5 from cache
