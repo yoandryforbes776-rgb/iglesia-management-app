@@ -2,6 +2,7 @@ package com.iglesiaflow.gestion.data.repository
 
 import com.iglesiaflow.gestion.core.audit.AuditLogger
 import com.iglesiaflow.gestion.core.security.SessionManager
+import com.iglesiaflow.gestion.data.local.dao.SyncDao
 import com.iglesiaflow.gestion.data.local.dao.FinanceDao
 import com.iglesiaflow.gestion.data.local.dao.LabeledTotal
 import com.iglesiaflow.gestion.data.local.dao.PeriodTotal
@@ -11,6 +12,7 @@ import com.iglesiaflow.gestion.data.local.entity.EnvelopeEntity
 import com.iglesiaflow.gestion.data.local.entity.ExpenseEntity
 import com.iglesiaflow.gestion.data.local.entity.FundEntity
 import com.iglesiaflow.gestion.data.local.entity.PledgeEntity
+import com.iglesiaflow.gestion.data.remote.RealtimeSyncManager
 import com.iglesiaflow.gestion.data.remote.SyncManager
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -30,7 +32,8 @@ class FinanceRepository @Inject constructor(
     private val dao: FinanceDao,
     private val auditLogger: AuditLogger,
     private val session: SessionManager,
-    private val syncManager: SyncManager
+    private val syncManager: SyncManager,
+    private val syncDao: SyncDao
 ) {
     fun donations(): Flow<List<DonationEntity>> = dao.observeDonations()
     fun donationsBetween(from: Long, to: Long): Flow<List<DonationEntity>> = dao.observeDonationsBetween(from, to)
@@ -55,6 +58,7 @@ class FinanceRepository @Inject constructor(
     suspend fun saveDonation(donation: DonationEntity): Long {
         val stamped = donation.copy(
             createdBy = donation.createdBy.ifBlank { session.requireUserName() },
+            updatedAt = System.currentTimeMillis(),
             pendingSync = true
         )
         val id = if (donation.id == 0L) dao.insertDonation(stamped) else { dao.updateDonation(stamped); donation.id }
@@ -68,12 +72,23 @@ class FinanceRepository @Inject constructor(
     }
 
     suspend fun deleteDonation(id: Long) {
+        val remoteId = syncDao.donationRemoteById(id)
         dao.deleteDonation(id)
+        syncManager.notifyDeleted(RealtimeSyncManager.DONATIONS, remoteId)
         auditLogger.log("DONACION_ELIMINADA", "donations", id, "", session.currentUserId(), session.requireUserName())
     }
 
-    suspend fun saveFund(fund: FundEntity): Long = dao.insertFund(fund)
-    suspend fun deleteFund(id: Long) = dao.deleteFund(id)
+    suspend fun saveFund(fund: FundEntity): Long {
+        val id = dao.insertFund(fund.copy(updatedAt = System.currentTimeMillis(), pendingSync = true))
+        syncManager.requestSync()
+        return id
+    }
+
+    suspend fun deleteFund(id: Long) {
+        val remoteId = syncDao.fundRemoteById(id)
+        dao.deleteFund(id)
+        syncManager.notifyDeleted(RealtimeSyncManager.FUNDS, remoteId)
+    }
 
     suspend fun savePledge(pledge: PledgeEntity): Long {
         val id = dao.insertPledge(pledge)

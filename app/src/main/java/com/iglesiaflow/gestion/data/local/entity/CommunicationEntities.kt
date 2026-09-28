@@ -35,5 +35,8 @@ data class PrayerRequestEntity(
     val prayerCount: Int = 0,
     val createdAt: Long = System.currentTimeMillis(),
     val answeredAt: Long? = null,
-    val answerNote: String = ""
+    val answerNote: String = "",
+    val remoteId: String? = null,
+    val pendingSync: Boolean = true,
+    val updatedAt: Long = System.currentTimeMillis()
 )

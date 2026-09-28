@@ -55,6 +55,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.iglesiaflow.gestion.core.config.AppSettings
 import com.iglesiaflow.gestion.core.security.SessionUser
 import com.iglesiaflow.gestion.ui.components.Avatar
+import com.iglesiaflow.gestion.ui.sync.SyncIndicator
 import kotlinx.coroutines.launch
 
 @Composable
@@ -138,7 +139,10 @@ fun AppShell(
                             Icon(Icons.Filled.Menu, contentDescription = "Menú")
                         }
                     },
-                    actions = { UserMenu(user = user, onLogout = onLogout) },
+                    actions = {
+                        SyncIndicator()
+                        UserMenu(user = user, onLogout = onLogout)
+                    },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.surface
                     )

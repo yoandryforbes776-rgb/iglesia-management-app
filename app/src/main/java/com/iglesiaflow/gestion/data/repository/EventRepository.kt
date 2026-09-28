@@ -2,6 +2,7 @@ package com.iglesiaflow.gestion.data.repository
 
 import com.iglesiaflow.gestion.core.audit.AuditLogger
 import com.iglesiaflow.gestion.core.security.SessionManager
+import com.iglesiaflow.gestion.data.local.dao.SyncDao
 import com.iglesiaflow.gestion.core.util.DateTimeUtils
 import com.iglesiaflow.gestion.data.local.dao.AttendanceRow
 import com.iglesiaflow.gestion.data.local.dao.EventDao
@@ -10,6 +11,7 @@ import com.iglesiaflow.gestion.data.local.dao.PeriodTotal
 import com.iglesiaflow.gestion.data.local.entity.AttendanceEntity
 import com.iglesiaflow.gestion.data.local.entity.CheckInEntity
 import com.iglesiaflow.gestion.data.local.entity.EventEntity
+import com.iglesiaflow.gestion.data.remote.RealtimeSyncManager
 import com.iglesiaflow.gestion.data.remote.SyncManager
 import kotlinx.coroutines.flow.Flow
 import kotlin.random.Random
@@ -21,7 +23,8 @@ class EventRepository @Inject constructor(
     private val dao: EventDao,
     private val auditLogger: AuditLogger,
     private val session: SessionManager,
-    private val syncManager: SyncManager
+    private val syncManager: SyncManager,
+    private val syncDao: SyncDao
 ) {
     fun events(): Flow<List<EventEntity>> = dao.observeEvents()
     fun upcoming(limit: Int = 5): Flow<List<EventEntity>> = dao.observeUpcoming(System.currentTimeMillis(), limit)
@@ -43,6 +46,7 @@ class EventRepository @Inject constructor(
     suspend fun save(event: EventEntity): Long {
         val stamped = event.copy(
             createdBy = event.createdBy.ifBlank { session.requireUserName() },
+            updatedAt = System.currentTimeMillis(),
             pendingSync = true
         )
         val id = if (event.id == 0L) dao.insertEvent(stamped) else { dao.updateEvent(stamped); event.id }
@@ -69,7 +73,9 @@ class EventRepository @Inject constructor(
     }
 
     suspend fun delete(id: Long) {
+        val remoteId = syncDao.eventRemoteById(id)
         dao.deleteEvent(id)
+        syncManager.notifyDeleted(RealtimeSyncManager.EVENTS, remoteId)
         auditLogger.log("EVENTO_ELIMINADO", "events", id, "", session.currentUserId(), session.requireUserName())
     }
 
@@ -78,8 +84,16 @@ class EventRepository @Inject constructor(
         if (existing == null) {
             dao.insertAttendance(AttendanceEntity(eventId = eventId, memberId = memberId, present = present))
         } else {
-            dao.insertAttendance(existing.copy(present = present, registeredAt = System.currentTimeMillis()))
+            dao.insertAttendance(
+                existing.copy(
+                    present = present,
+                    registeredAt = System.currentTimeMillis(),
+                    updatedAt = System.currentTimeMillis(),
+                    pendingSync = true
+                )
+            )
         }
+        syncManager.requestSync()
     }
 
     suspend fun checkIn(

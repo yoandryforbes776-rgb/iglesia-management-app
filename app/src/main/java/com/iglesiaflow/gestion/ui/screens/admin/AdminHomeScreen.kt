@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Card
@@ -55,7 +56,13 @@ private val entries = listOf(
     AdminEntry("Campos personalizados", "Amplía los formularios sin recompilar", Icons.Filled.Tune, Routes.ADMIN_FIELDS),
     AdminEntry("Apariencia e idioma", "Material You, logo e idiomas", Icons.Filled.Palette, Routes.ADMIN_APPEARANCE),
     AdminEntry("Backup e importación", "Copias, CSV y restauración", Icons.Filled.Backup, Routes.ADMIN_BACKUP),
-    AdminEntry("Auditoría", "Registro de actividad", Icons.Filled.History, Routes.ADMIN_AUDIT)
+    AdminEntry("Auditoría", "Registro de actividad", Icons.Filled.History, Routes.ADMIN_AUDIT),
+    AdminEntry(
+        "Sincronización en la nube",
+        "Tiempo real entre dispositivos y estado de la cola",
+        Icons.Filled.CloudSync,
+        Routes.ADMIN_SYNC
+    )
 )
 
 @Composable

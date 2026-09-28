@@ -44,6 +44,7 @@ class SettingsRepository @Inject constructor(@ApplicationContext private val con
             prefs[Keys.notifyDonations] = updated.notifyDonations
             prefs[Keys.notifyPrayer] = updated.notifyPrayer
             prefs[Keys.cloudSync] = updated.cloudSyncEnabled
+            prefs[Keys.cloudChurchId] = updated.cloudChurchId
             prefs[Keys.require2fa] = updated.requireTwoFactorForAdmins
             prefs[Keys.sessionTimeout] = updated.sessionTimeoutMinutes
             prefs[Keys.privacyConsent] = updated.privacyConsentAccepted
@@ -78,6 +79,7 @@ class SettingsRepository @Inject constructor(@ApplicationContext private val con
             notifyDonations = this[Keys.notifyDonations] ?: defaults.notifyDonations,
             notifyPrayer = this[Keys.notifyPrayer] ?: defaults.notifyPrayer,
             cloudSyncEnabled = this[Keys.cloudSync] ?: defaults.cloudSyncEnabled,
+            cloudChurchId = this[Keys.cloudChurchId] ?: defaults.cloudChurchId,
             requireTwoFactorForAdmins = this[Keys.require2fa] ?: defaults.requireTwoFactorForAdmins,
             sessionTimeoutMinutes = this[Keys.sessionTimeout] ?: defaults.sessionTimeoutMinutes,
             privacyConsentAccepted = this[Keys.privacyConsent] ?: defaults.privacyConsentAccepted,
@@ -103,6 +105,7 @@ class SettingsRepository @Inject constructor(@ApplicationContext private val con
         val notifyDonations = booleanPreferencesKey("notify_donations")
         val notifyPrayer = booleanPreferencesKey("notify_prayer")
         val cloudSync = booleanPreferencesKey("cloud_sync")
+        val cloudChurchId = stringPreferencesKey("cloud_church_id")
         val require2fa = booleanPreferencesKey("require_2fa")
         val sessionTimeout = intPreferencesKey("session_timeout")
         val privacyConsent = booleanPreferencesKey("privacy_consent")

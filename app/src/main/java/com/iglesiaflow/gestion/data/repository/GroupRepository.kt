@@ -2,6 +2,9 @@ package com.iglesiaflow.gestion.data.repository
 
 import com.iglesiaflow.gestion.core.audit.AuditLogger
 import com.iglesiaflow.gestion.core.security.SessionManager
+import com.iglesiaflow.gestion.data.local.dao.SyncDao
+import com.iglesiaflow.gestion.data.remote.RealtimeSyncManager
+import com.iglesiaflow.gestion.data.remote.SyncManager
 import com.iglesiaflow.gestion.data.local.dao.GroupDao
 import com.iglesiaflow.gestion.data.local.dao.GroupMemberRow
 import com.iglesiaflow.gestion.data.local.dao.GroupSummaryRow
@@ -17,7 +20,9 @@ import javax.inject.Singleton
 class GroupRepository @Inject constructor(
     private val dao: GroupDao,
     private val auditLogger: AuditLogger,
-    private val session: SessionManager
+    private val session: SessionManager,
+    private val syncManager: SyncManager,
+    private val syncDao: SyncDao
 ) {
     fun groups(): Flow<List<GroupEntity>> = dao.observeGroups()
     fun group(id: Long): Flow<GroupEntity?> = dao.observeGroup(id)
@@ -29,25 +34,34 @@ class GroupRepository @Inject constructor(
     suspend fun allGroups(): List<GroupEntity> = dao.allGroupsOnce()
 
     suspend fun save(group: GroupEntity): Long {
-        val id = if (group.id == 0L) dao.insertGroup(group) else { dao.updateGroup(group); group.id }
+        val stamped = group.copy(updatedAt = System.currentTimeMillis(), pendingSync = true)
+        val id = if (group.id == 0L) dao.insertGroup(stamped) else { dao.updateGroup(stamped); group.id }
         auditLogger.log(
             if (group.id == 0L) "GRUPO_CREADO" else "GRUPO_ACTUALIZADO",
             "church_groups", id, group.name, session.currentUserId(), session.requireUserName()
         )
+        syncManager.requestSync()
         return id
     }
 
     suspend fun delete(id: Long) {
+        val remoteId = syncDao.groupRemoteById(id)
         dao.deleteMembersOfGroup(id)
         dao.deleteGroup(id)
+        syncManager.notifyDeleted(RealtimeSyncManager.GROUPS, remoteId)
         auditLogger.log("GRUPO_ELIMINADO", "church_groups", id, "", session.currentUserId(), session.requireUserName())
     }
 
     suspend fun addMember(groupId: Long, memberId: Long, role: GroupRole) {
         dao.insertGroupMember(GroupMemberEntity(groupId = groupId, memberId = memberId, role = role))
+        syncManager.requestSync()
     }
 
-    suspend fun removeMember(membershipId: Long) = dao.deleteGroupMember(membershipId)
+    suspend fun removeMember(membershipId: Long) {
+        val remoteId = syncDao.groupMemberRemoteById(membershipId)
+        dao.deleteGroupMember(membershipId)
+        syncManager.notifyDeleted(RealtimeSyncManager.GROUP_MEMBERS, remoteId)
+    }
 
     suspend fun postMessage(groupId: Long, content: String) {
         dao.insertGroupMessage(
@@ -58,7 +72,12 @@ class GroupRepository @Inject constructor(
                 content = content
             )
         )
+        syncManager.requestSync()
     }
 
-    suspend fun deleteMessage(id: Long) = dao.deleteGroupMessage(id)
+    suspend fun deleteMessage(id: Long) {
+        val remoteId = syncDao.groupMessageRemoteById(id)
+        dao.deleteGroupMessage(id)
+        syncManager.notifyDeleted(RealtimeSyncManager.GROUP_MESSAGES, remoteId)
+    }
 }

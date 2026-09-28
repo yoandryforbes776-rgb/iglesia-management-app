@@ -24,6 +24,8 @@ data class AppSettings(
     val notifyDonations: Boolean = false,
     val notifyPrayer: Boolean = true,
     val cloudSyncEnabled: Boolean = false,
+    /** Nodo compartido en la nube; todos los dispositivos de la misma iglesia usan el mismo código. */
+    val cloudChurchId: String = "principal",
     val requireTwoFactorForAdmins: Boolean = true,
     val sessionTimeoutMinutes: Int = 30,
     val privacyConsentAccepted: Boolean = false,

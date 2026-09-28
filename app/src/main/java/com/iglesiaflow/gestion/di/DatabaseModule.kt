@@ -12,6 +12,7 @@ import com.iglesiaflow.gestion.data.local.dao.EventDao
 import com.iglesiaflow.gestion.data.local.dao.FinanceDao
 import com.iglesiaflow.gestion.data.local.dao.GroupDao
 import com.iglesiaflow.gestion.data.local.dao.MemberDao
+import com.iglesiaflow.gestion.data.local.dao.SyncDao
 import com.iglesiaflow.gestion.data.local.dao.VolunteerDao
 import dagger.Module
 import dagger.Provides
@@ -61,4 +62,5 @@ object DatabaseModule {
     @Provides fun provideVolunteerDao(db: AppDatabase): VolunteerDao = db.volunteerDao()
     @Provides fun provideCommunicationDao(db: AppDatabase): CommunicationDao = db.communicationDao()
     @Provides fun provideAdminDao(db: AppDatabase): AdminDao = db.adminDao()
+    @Provides fun provideSyncDao(db: AppDatabase): SyncDao = db.syncDao()
 }

@@ -13,6 +13,7 @@ import com.iglesiaflow.gestion.ui.screens.admin.AuditScreen
 import com.iglesiaflow.gestion.ui.screens.admin.BackupScreen
 import com.iglesiaflow.gestion.ui.screens.admin.CustomFieldsScreen
 import com.iglesiaflow.gestion.ui.screens.admin.RolesScreen
+import com.iglesiaflow.gestion.ui.screens.admin.SyncScreen
 import com.iglesiaflow.gestion.ui.screens.admin.UsersScreen
 import com.iglesiaflow.gestion.ui.screens.communication.CommunicationScreen
 import com.iglesiaflow.gestion.ui.screens.communication.PrayerScreen
@@ -98,5 +99,6 @@ fun AppNavGraph(
         composable(Routes.ADMIN_APPEARANCE) { AppearanceScreen(onBack = { navController.popBackStack() }) }
         composable(Routes.ADMIN_BACKUP) { BackupScreen(onBack = { navController.popBackStack() }) }
         composable(Routes.ADMIN_AUDIT) { AuditScreen(onBack = { navController.popBackStack() }) }
+        composable(Routes.ADMIN_SYNC) { SyncScreen(onBack = { navController.popBackStack() }) }
     }
 }

@@ -18,6 +18,7 @@ data class GroupEntity(
     val location: String = "",
     val active: Boolean = true,
     val createdAt: Long = System.currentTimeMillis(),
+    val updatedAt: Long = System.currentTimeMillis(),
     val remoteId: String? = null,
     val pendingSync: Boolean = true
 )
@@ -31,7 +32,10 @@ data class GroupMemberEntity(
     val groupId: Long,
     val memberId: Long,
     val role: GroupRole = GroupRole.MIEMBRO,
-    val joinedAt: Long = System.currentTimeMillis()
+    val joinedAt: Long = System.currentTimeMillis(),
+    val remoteId: String? = null,
+    val pendingSync: Boolean = true,
+    val updatedAt: Long = System.currentTimeMillis()
 )
 
 /** Muro/chat interno de cada grupo. */
@@ -43,6 +47,7 @@ data class GroupMessageEntity(
     val authorName: String,
     val content: String,
     val createdAt: Long = System.currentTimeMillis(),
+    val updatedAt: Long = System.currentTimeMillis(),
     val remoteId: String? = null,
     val pendingSync: Boolean = true
 )

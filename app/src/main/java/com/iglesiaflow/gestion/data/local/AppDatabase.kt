@@ -4,6 +4,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.iglesiaflow.gestion.data.local.dao.AdminDao
+import com.iglesiaflow.gestion.data.local.dao.SyncDao
 import com.iglesiaflow.gestion.data.local.dao.CommunicationDao
 import com.iglesiaflow.gestion.data.local.dao.EventDao
 import com.iglesiaflow.gestion.data.local.dao.FinanceDao
@@ -12,6 +13,8 @@ import com.iglesiaflow.gestion.data.local.dao.MemberDao
 import com.iglesiaflow.gestion.data.local.dao.VolunteerDao
 import com.iglesiaflow.gestion.data.local.entity.AttendanceEntity
 import com.iglesiaflow.gestion.data.local.entity.AuditLogEntity
+import com.iglesiaflow.gestion.data.local.entity.SyncStateEntity
+import com.iglesiaflow.gestion.data.local.entity.TombstoneEntity
 import com.iglesiaflow.gestion.data.local.entity.CampaignEntity
 import com.iglesiaflow.gestion.data.local.entity.CheckInEntity
 import com.iglesiaflow.gestion.data.local.entity.CustomFieldDefEntity
@@ -62,9 +65,11 @@ import com.iglesiaflow.gestion.data.local.entity.VolunteerSkillEntity
         PrayerRequestEntity::class,
         UserEntity::class,
         RolePermissionEntity::class,
-        AuditLogEntity::class
+        AuditLogEntity::class,
+        SyncStateEntity::class,
+        TombstoneEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -76,6 +81,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun volunteerDao(): VolunteerDao
     abstract fun communicationDao(): CommunicationDao
     abstract fun adminDao(): AdminDao
+    abstract fun syncDao(): SyncDao
 
     companion object {
         const val NAME = "iglesiaflow.db"

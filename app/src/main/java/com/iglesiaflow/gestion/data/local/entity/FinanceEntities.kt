@@ -12,7 +12,10 @@ data class FundEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,
     val description: String = "",
-    val active: Boolean = true
+    val active: Boolean = true,
+    val remoteId: String? = null,
+    val pendingSync: Boolean = true,
+    val updatedAt: Long = System.currentTimeMillis()
 )
 
 @Entity(
@@ -35,6 +38,7 @@ data class DonationEntity(
     val note: String = "",
     val createdBy: String = "",
     val createdAt: Long = System.currentTimeMillis(),
+    val updatedAt: Long = System.currentTimeMillis(),
     val remoteId: String? = null,
     val pendingSync: Boolean = true
 )

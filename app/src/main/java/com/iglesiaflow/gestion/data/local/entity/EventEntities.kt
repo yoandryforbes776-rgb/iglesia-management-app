@@ -25,6 +25,7 @@ data class EventEntity(
     val reminderMinutesBefore: Int = 60,
     val createdBy: String = "",
     val createdAt: Long = System.currentTimeMillis(),
+    val updatedAt: Long = System.currentTimeMillis(),
     val remoteId: String? = null,
     val pendingSync: Boolean = true
 )
@@ -39,7 +40,10 @@ data class AttendanceEntity(
     val memberId: Long,
     val present: Boolean = true,
     val registeredAt: Long = System.currentTimeMillis(),
-    val note: String = ""
+    val note: String = "",
+    val remoteId: String? = null,
+    val pendingSync: Boolean = true,
+    val updatedAt: Long = System.currentTimeMillis()
 )
 
 /** Check-in/out del ministerio infantil con código de seguridad. */

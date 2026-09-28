@@ -52,6 +52,7 @@ object Routes {
     const val ADMIN_APPEARANCE = "admin/appearance"
     const val ADMIN_BACKUP = "admin/backup"
     const val ADMIN_AUDIT = "admin/audit"
+    const val ADMIN_SYNC = "admin/sync"
 
     fun memberDetail(id: Long) = "member/$id"
     fun eventDetail(id: Long) = "event/$id"

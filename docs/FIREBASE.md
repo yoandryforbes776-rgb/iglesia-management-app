@@ -27,6 +27,54 @@ El `build.gradle.kts` aplica el plugin de Google Services **solo si ese archivo 
 | **Cloud Messaging** | Avisos de eventos, cumpleaños, check-in y oración | Nada extra; usa el token del dispositivo o el topic `iglesia` |
 | **Storage** (opcional) | Fotos de miembros | Solo si decides externalizar las imágenes |
 
+## 2 bis. Realtime Database: sincronización en tiempo real (recomendado)
+
+La app replica los datos entre dispositivos con **Realtime Database**, que en el plan Spark
+incluye 1 GB almacenado, 10 GB/mes de descarga y 100 conexiones simultáneas: de sobra para una
+iglesia. Pasos:
+
+1. Firebase Console → **Realtime Database → Crear base de datos** (modo bloqueado).
+2. Pega estas reglas (pestaña *Reglas*) y publica:
+
+```json
+{
+  "rules": {
+    "churches": {
+      "$churchId": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        "$collection": {
+          ".indexOn": ["updatedAt"]
+        }
+      }
+    }
+  }
+}
+```
+
+   Si todavía no usas Firebase Authentication y quieres probar rápido, puedes usar
+   `".read": true, ".write": true` **solo durante las pruebas**: cualquiera con la URL podría leer
+   los datos de la congregación.
+
+3. En la app: *Administración → Sincronización en la nube* → activa el interruptor y escribe el
+   mismo **código de iglesia** en todos los dispositivos (por defecto `principal`).
+
+### Cómo funciona
+
+| Aspecto | Comportamiento |
+|---------|----------------|
+| Bajada | Un listener por colección aplica los cambios en Room en 1-2 s; la UI se refresca sola |
+| Subida | Los registros con `pendingSync = true` se envían en orden de dependencia |
+| Identidad | Cada registro tiene un `remoteId` (UUID) que es su clave en la nube: dos móviles nunca se pisan |
+| Borrados | Viajan como lápidas (`deleted: true`) para propagarse al resto |
+| Conflictos | Gana la escritura con `updatedAt` mayor |
+| Sin conexión | La caché en disco de RTDB + la cola local permiten trabajar offline y subir al reconectar |
+| Coste | Solo se descargan los nodos con `updatedAt` posterior a la última sincronización |
+
+Colecciones replicadas: `families`, `members`, `funds`, `groups`, `events`, `donations`,
+`attendance`, `group_members`, `group_messages`, `prayers`. **No** se replican usuarios,
+contraseñas, 2FA ni auditoría: son locales a cada dispositivo por seguridad.
+
 ## 3. Reglas de Firestore sugeridas
 
 ```

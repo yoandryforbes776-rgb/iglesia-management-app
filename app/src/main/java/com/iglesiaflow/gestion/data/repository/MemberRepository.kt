@@ -2,12 +2,14 @@ package com.iglesiaflow.gestion.data.repository
 
 import com.iglesiaflow.gestion.core.audit.AuditLogger
 import com.iglesiaflow.gestion.core.security.SessionManager
+import com.iglesiaflow.gestion.data.local.dao.SyncDao
 import com.iglesiaflow.gestion.data.local.dao.MemberDao
 import com.iglesiaflow.gestion.data.local.entity.CustomFieldDefEntity
 import com.iglesiaflow.gestion.data.local.entity.CustomFieldValueEntity
 import com.iglesiaflow.gestion.data.local.entity.FamilyEntity
 import com.iglesiaflow.gestion.data.local.entity.MemberEntity
 import com.iglesiaflow.gestion.data.local.entity.NoteEntity
+import com.iglesiaflow.gestion.data.remote.RealtimeSyncManager
 import com.iglesiaflow.gestion.data.remote.SyncManager
 import com.iglesiaflow.gestion.domain.model.CustomFieldEntity
 import kotlinx.coroutines.flow.Flow
@@ -19,7 +21,8 @@ class MemberRepository @Inject constructor(
     private val dao: MemberDao,
     private val auditLogger: AuditLogger,
     private val session: SessionManager,
-    private val syncManager: SyncManager
+    private val syncManager: SyncManager,
+    private val syncDao: SyncDao
 ) {
     fun members(): Flow<List<MemberEntity>> = dao.observeMembers()
     fun search(query: String): Flow<List<MemberEntity>> = dao.searchMembers(query.trim())
@@ -62,6 +65,7 @@ class MemberRepository @Inject constructor(
 
     suspend fun delete(member: MemberEntity) {
         dao.deleteMember(member)
+        syncManager.notifyDeleted(RealtimeSyncManager.MEMBERS, member.remoteId)
         auditLogger.log("MIEMBRO_ELIMINADO", "members", member.id, member.fullName,
             session.currentUserId(), session.requireUserName())
     }
@@ -73,12 +77,15 @@ class MemberRepository @Inject constructor(
             if (family.id == 0L) "FAMILIA_CREADA" else "FAMILIA_ACTUALIZADA",
             "families", id, family.name, session.currentUserId(), session.requireUserName()
         )
+        syncManager.requestSync()
         return id
     }
 
     suspend fun deleteFamily(id: Long) {
+        val remoteId = syncDao.familyRemoteById(id)
         dao.detachMembersFromFamily(id)
         dao.deleteFamilyById(id)
+        syncManager.notifyDeleted(RealtimeSyncManager.FAMILIES, remoteId)
         auditLogger.log("FAMILIA_ELIMINADA", "families", id, "", session.currentUserId(), session.requireUserName())
     }
 

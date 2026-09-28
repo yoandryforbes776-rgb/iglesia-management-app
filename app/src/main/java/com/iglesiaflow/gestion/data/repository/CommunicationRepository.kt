@@ -2,6 +2,9 @@ package com.iglesiaflow.gestion.data.repository
 
 import com.iglesiaflow.gestion.core.audit.AuditLogger
 import com.iglesiaflow.gestion.core.security.SessionManager
+import com.iglesiaflow.gestion.data.local.dao.SyncDao
+import com.iglesiaflow.gestion.data.remote.RealtimeSyncManager
+import com.iglesiaflow.gestion.data.remote.SyncManager
 import com.iglesiaflow.gestion.data.local.dao.CommunicationDao
 import com.iglesiaflow.gestion.data.local.entity.CampaignEntity
 import com.iglesiaflow.gestion.data.local.entity.PrayerRequestEntity
@@ -15,7 +18,9 @@ import javax.inject.Singleton
 class CommunicationRepository @Inject constructor(
     private val dao: CommunicationDao,
     private val auditLogger: AuditLogger,
-    private val session: SessionManager
+    private val session: SessionManager,
+    private val syncManager: SyncManager,
+    private val syncDao: SyncDao
 ) {
     fun campaigns(): Flow<List<CampaignEntity>> = dao.observeCampaigns()
     fun prayerRequests(): Flow<List<PrayerRequestEntity>> = dao.observePrayerRequests()
@@ -46,15 +51,24 @@ class CommunicationRepository @Inject constructor(
     suspend fun deleteCampaign(id: Long) = dao.deleteCampaign(id)
 
     suspend fun savePrayer(request: PrayerRequestEntity): Long {
-        val id = if (request.id == 0L) dao.insertPrayerRequest(request) else {
-            dao.updatePrayerRequest(request); request.id
+        val stamped = request.copy(updatedAt = System.currentTimeMillis(), pendingSync = true)
+        val id = if (request.id == 0L) dao.insertPrayerRequest(stamped) else {
+            dao.updatePrayerRequest(stamped); request.id
         }
+        syncManager.requestSync()
         return id
     }
 
     suspend fun prayFor(id: Long) {
         val request = dao.getPrayerRequest(id) ?: return
-        dao.updatePrayerRequest(request.copy(prayerCount = request.prayerCount + 1))
+        dao.updatePrayerRequest(
+            request.copy(
+                prayerCount = request.prayerCount + 1,
+                updatedAt = System.currentTimeMillis(),
+                pendingSync = true
+            )
+        )
+        syncManager.requestSync()
     }
 
     suspend fun answerPrayer(id: Long, note: String) {
@@ -63,12 +77,18 @@ class CommunicationRepository @Inject constructor(
             request.copy(
                 status = PrayerStatus.RESPONDIDA,
                 answeredAt = System.currentTimeMillis(),
-                answerNote = note
+                answerNote = note,
+                updatedAt = System.currentTimeMillis(),
+                pendingSync = true
             )
         )
         auditLogger.log("ORACION_RESPONDIDA", "prayer_requests", id, request.title,
             session.currentUserId(), session.requireUserName())
     }
 
-    suspend fun deletePrayer(id: Long) = dao.deletePrayerRequest(id)
+    suspend fun deletePrayer(id: Long) {
+        val remoteId = syncDao.prayerRemoteById(id)
+        dao.deletePrayerRequest(id)
+        syncManager.notifyDeleted(RealtimeSyncManager.PRAYERS, remoteId)
+    }
 }
