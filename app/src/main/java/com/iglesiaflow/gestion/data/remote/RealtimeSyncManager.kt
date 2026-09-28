@@ -6,6 +6,7 @@ import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.Query
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
@@ -101,9 +102,9 @@ class RealtimeSyncManager @Inject constructor(
     fun bind() {
         scope.launch {
             settingsRepository.settings
-                .map { it.cloudSyncEnabled to it.cloudChurchId }
+                .map { Triple(it.cloudSyncEnabled, it.cloudChurchId, it.cloudDatabaseUrl) }
                 .distinctUntilChanged()
-                .collect { (enabled, churchId) ->
+                .collect { (enabled, churchId, databaseUrl) ->
                     detach()
                     _status.value = _status.value.copy(
                         enabled = enabled,
@@ -111,7 +112,7 @@ class RealtimeSyncManager @Inject constructor(
                         error = null
                     )
                     if (enabled && gateway.isAvailable) {
-                        runCatching { attach(churchId.ifBlank { DEFAULT_CHURCH }) }
+                        runCatching { attach(churchId.ifBlank { DEFAULT_CHURCH }, databaseUrl) }
                             .onFailure { failure ->
                                 Log.w(TAG, "No se pudo iniciar la sincronización", failure)
                                 _status.value = _status.value.copy(error = failure.message)
@@ -139,12 +140,22 @@ class RealtimeSyncManager @Inject constructor(
         }.onFailure { Log.w(TAG, "Sin sesión anónima de Firebase", it) }
     }
 
-    private suspend fun attach(churchId: String) {
+    /**
+     * Instancia de Realtime Database. Normalmente la URL viene en
+     * `google-services.json`, pero si ese archivo se descargó antes de crear la
+     * base de datos la iglesia puede pegarla a mano en los ajustes.
+     */
+    private fun databaseFor(url: String): FirebaseDatabase =
+        if (url.isBlank()) Firebase.database else FirebaseDatabase.getInstance(url.trim())
+
+    private suspend fun attach(churchId: String, databaseUrl: String) {
         ensureSignedIn()
-        val root = Firebase.database.reference.child(CHURCHES).child(churchId)
+        val database = databaseFor(databaseUrl)
+        runCatching { database.setPersistenceEnabled(true) }
+        val root = database.reference.child(CHURCHES).child(churchId)
         currentRoot = root
 
-        connectionRef = Firebase.database.getReference(".info/connected")
+        connectionRef = database.getReference(".info/connected")
         connectionListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val connected = snapshot.getValue(Boolean::class.java) ?: false

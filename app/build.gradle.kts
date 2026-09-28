@@ -59,7 +59,12 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix = ".debug"
+            // El sufijo permite tener instaladas debug y release a la vez, pero
+            // google-services.json solo declara el paquete base: si la iglesia ha
+            // configurado Firebase, la variante debug usa el mismo applicationId.
+            if (!googleServicesFile.exists()) {
+                applicationIdSuffix = ".debug"
+            }
             versionNameSuffix = "-debug"
             isMinifyEnabled = false
         }

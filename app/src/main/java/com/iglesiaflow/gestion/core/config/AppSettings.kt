@@ -26,6 +26,8 @@ data class AppSettings(
     val cloudSyncEnabled: Boolean = false,
     /** Nodo compartido en la nube; todos los dispositivos de la misma iglesia usan el mismo código. */
     val cloudChurchId: String = "principal",
+    /** URL de la Realtime Database; vacío = la que indique google-services.json. */
+    val cloudDatabaseUrl: String = "",
     val requireTwoFactorForAdmins: Boolean = true,
     val sessionTimeoutMinutes: Int = 30,
     val privacyConsentAccepted: Boolean = false,

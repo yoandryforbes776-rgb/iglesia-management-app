@@ -57,4 +57,11 @@ class SyncStatusViewModel @Inject constructor(
             settingsRepository.update { it.copy(cloudChurchId = normalized.ifBlank { "principal" }) }
         }
     }
+
+    /** URL manual de la Realtime Database (por si google-services.json no la trae). */
+    fun setDatabaseUrl(url: String) {
+        viewModelScope.launch {
+            settingsRepository.update { it.copy(cloudDatabaseUrl = url.trim()) }
+        }
+    }
 }

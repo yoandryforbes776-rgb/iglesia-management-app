@@ -46,6 +46,9 @@ fun SyncScreen(
     var churchCode by remember(state.settings.cloudChurchId) {
         mutableStateOf(state.settings.cloudChurchId)
     }
+    var databaseUrl by remember(state.settings.cloudDatabaseUrl) {
+        mutableStateOf(state.settings.cloudDatabaseUrl)
+    }
 
     Scaffold(
         topBar = {
@@ -115,6 +118,16 @@ fun SyncScreen(
                         )
                         OutlinedButton(onClick = { viewModel.setChurchId(churchCode) }) {
                             Text("Guardar código")
+                        }
+                        FormTextField(
+                            "URL de la base de datos (opcional)",
+                            databaseUrl,
+                            { databaseUrl = it },
+                            supportingText = "Solo si la sincronización no arranca: cópiala de Firebase " +
+                                "→ Realtime Database (ej. https://tu-proyecto-default-rtdb.firebaseio.com)"
+                        )
+                        OutlinedButton(onClick = { viewModel.setDatabaseUrl(databaseUrl) }) {
+                            Text("Guardar URL")
                         }
                     }
                 }
