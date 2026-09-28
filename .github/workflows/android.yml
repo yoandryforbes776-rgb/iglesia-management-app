@@ -72,8 +72,11 @@ jobs:
           fi
 
           if [ -z "$DBURL" ]; then
-            echo "AVISO: el archivo no trae firebase_url: falta crear la Realtime Database en la consola, o hay que volver a descargar google-services.json despues de crearla. La sincronizacion no funcionara hasta arreglarlo." \
+            echo "AVISO: el archivo no trae firebase_url. Falta crear la Realtime Database en la consola o volver a descargar google-services.json despues de crearla; la APK se genera igual, pero habra que pegar la URL a mano en Administracion > Sincronizacion en la nube." \
               | tee -a ci-logs/firebase.txt
+            echo "FIREBASE_DB=sin URL (hay que pegarla a mano en la app)" >> "$GITHUB_ENV"
+          else
+            echo "FIREBASE_DB=$DBURL" >> "$GITHUB_ENV"
           fi
 
           echo "FIREBASE_STATE=configurado (proyecto $PROJ)" >> "$GITHUB_ENV"
@@ -159,6 +162,7 @@ jobs:
             Credenciales de demostración: `admin@iglesia.org` / `admin123`.
 
             Firebase: ${{ env.FIREBASE_STATE }}
+            Realtime Database: ${{ env.FIREBASE_DB }}
           files: artifacts/*.apk
 
       - name: Guardar log de compilación en el repositorio
