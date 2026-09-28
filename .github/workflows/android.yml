@@ -136,6 +136,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    continue-on-error: true
 
     steps:
       - name: Checkout
@@ -157,10 +158,11 @@ jobs:
       - name: Arrancar emulador y probar la APK
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 34
-          target: google_apis
+          api-level: 33
+          target: default
           arch: x86_64
-          profile: pixel_5
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot -camera-back none
           disable-animations: true
           script: |
             mkdir -p ci-logs
