@@ -42,7 +42,7 @@ import com.iglesiaflow.gestion.ui.components.LineChart
 import com.iglesiaflow.gestion.ui.components.SectionCard
 import com.iglesiaflow.gestion.ui.components.StatCard
 
-private val tabs = listOf("Resumen", "Directorio", "Finanzas", "Asistencia", "Consultas")
+private val tabs = listOf("Resumen", "Directorio", "Asistencia", "Seguimiento", "Consultas")
 
 @Composable
 fun ReportsScreen(viewModel: ReportsViewModel = hiltViewModel()) {
@@ -80,9 +80,9 @@ fun ReportsScreen(viewModel: ReportsViewModel = hiltViewModel()) {
                                     modifier = Modifier.weight(1f)
                                 )
                                 StatCard(
-                                    title = "Balance anual",
-                                    value = Formatters.money(state.incomeYear - state.expensesYear, currency),
-                                    subtitle = "ingresos ${Formatters.money(state.incomeYear, currency)}",
+                                    title = "Seguimiento",
+                                    value = state.absenceAlerts.size.toString(),
+                                    subtitle = "faltan 2+ veces seguidas",
                                     modifier = Modifier.weight(1f)
                                 )
                             }
@@ -93,11 +93,6 @@ fun ReportsScreen(viewModel: ReportsViewModel = hiltViewModel()) {
                                     state.byStatus.map { it.status to it.total.toDouble() },
                                     { it.toInt().toString() }
                                 )
-                            }
-                        }
-                        item {
-                            SectionCard(title = "Tendencia de ingresos (12 meses)") {
-                                LineChart(state.donationTrend)
                             }
                         }
                         item {
@@ -120,29 +115,6 @@ fun ReportsScreen(viewModel: ReportsViewModel = hiltViewModel()) {
 
                     2 -> {
                         item {
-                            SectionCard(title = "Ingresos por fondo") {
-                                HorizontalBreakdown(state.donationsByFund, { Formatters.money(it, currency) })
-                            }
-                        }
-                        item {
-                            SectionCard(title = "Mayores contribuyentes del año") {
-                                DataTable(
-                                    headers = listOf("Miembro", "Total"),
-                                    rows = state.topDonors.map {
-                                        listOf(it.first, Formatters.money(it.second, currency))
-                                    }
-                                )
-                            }
-                        }
-                        if (state.canExport) {
-                            item {
-                                Button(onClick = viewModel::exportFinancialPdf) { Text("Exportar reporte financiero PDF") }
-                            }
-                        }
-                    }
-
-                    3 -> {
-                        item {
                             SectionCard(title = "Asistencia por evento") {
                                 HorizontalBreakdown(state.attendanceByEvent, { it.toInt().toString() })
                             }
@@ -152,6 +124,30 @@ fun ReportsScreen(viewModel: ReportsViewModel = hiltViewModel()) {
                         }
                         if (state.canExport) {
                             item { OutlinedButton(onClick = viewModel::exportAttendanceCsv) { Text("Exportar CSV") } }
+                        }
+                    }
+
+                    3 -> {
+                        item {
+                            SectionCard(title = "Miembros que están faltando") {
+                                DataTable(
+                                    headers = listOf("Miembro", "Faltas seguidas", "Última asistencia"),
+                                    rows = state.absenceAlerts.map {
+                                        listOf(
+                                            it.name,
+                                            it.missedCount.toString(),
+                                            it.lastAttendedAt?.let { date ->
+                                                com.iglesiaflow.gestion.core.util.DateTimeUtils.formatDate(date)
+                                            } ?: "sin registro"
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                        if (state.canExport) {
+                            item {
+                                Button(onClick = viewModel::exportAbsencesCsv) { Text("Exportar listado de ausencias") }
+                            }
                         }
                     }
 
@@ -170,7 +166,6 @@ private fun QueryBuilder(state: ReportsUiState, viewModel: ReportsViewModel) {
     var value by remember { mutableStateOf("") }
     val fields = when (entity) {
         QueryEntity.MIEMBROS -> listOf("Nombre", "Ciudad", "Estado", "Rol", "Edad", "Email")
-        QueryEntity.DONACIONES -> listOf("Miembro", "Importe", "Tipo", "Método")
         QueryEntity.EVENTOS -> listOf("Título", "Tipo", "Lugar")
     }
     var field by remember(entity) { mutableStateOf(fields.first()) }

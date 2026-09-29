@@ -46,7 +46,7 @@ class SettingsViewModel @Inject constructor(
             "events" -> it.copy(notifyEvents = enabled)
             "birthdays" -> it.copy(notifyBirthdays = enabled)
             "checkin" -> it.copy(notifyCheckIn = enabled)
-            "donations" -> it.copy(notifyDonations = enabled)
+            "absences" -> it.copy(notifyAbsences = enabled)
             else -> it.copy(notifyPrayer = enabled)
         }
     }

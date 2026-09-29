@@ -7,6 +7,7 @@ import com.iglesiaflow.gestion.core.config.SettingsRepository
 import com.iglesiaflow.gestion.data.remote.RealtimeStatus
 import com.iglesiaflow.gestion.data.remote.SyncManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -17,7 +18,9 @@ import javax.inject.Inject
 data class SyncUiState(
     val status: RealtimeStatus = RealtimeStatus(),
     val pending: Int = 0,
-    val settings: AppSettings = AppSettings()
+    val settings: AppSettings = AppSettings(),
+    val diagnostics: List<String> = emptyList(),
+    val diagnosing: Boolean = false
 ) {
     val label: String
         get() = when {
@@ -37,13 +40,36 @@ class SyncStatusViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
+    private val diagnostics = MutableStateFlow<List<String>>(emptyList())
+    private val diagnosing = MutableStateFlow(false)
+
     val uiState: StateFlow<SyncUiState> = combine(
         syncManager.status,
         syncManager.pendingCount,
-        settingsRepository.settings
-    ) { status, pending, settings ->
-        SyncUiState(status = status, pending = pending, settings = settings)
+        settingsRepository.settings,
+        diagnostics,
+        diagnosing
+    ) { status, pending, settings, lines, running ->
+        SyncUiState(
+            status = status,
+            pending = pending,
+            settings = settings,
+            diagnostics = lines,
+            diagnosing = running
+        )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SyncUiState())
+
+    /** Prueba paso a paso la conexión con Firebase y explica qué falla. */
+    fun runDiagnostics() {
+        if (diagnosing.value) return
+        viewModelScope.launch {
+            diagnosing.value = true
+            diagnostics.value = listOf("Probando la conexión…")
+            diagnostics.value = runCatching { syncManager.diagnose() }
+                .getOrElse { listOf("❌ Error inesperado: ${it.message}") }
+            diagnosing.value = false
+        }
+    }
 
     fun syncNow() = syncManager.requestSync()
 

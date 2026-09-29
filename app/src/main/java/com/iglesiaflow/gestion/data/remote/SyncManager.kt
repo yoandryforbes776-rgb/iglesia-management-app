@@ -33,6 +33,9 @@ class SyncManager @Inject constructor(
 
     suspend fun syncNow() = realtime.pushPending()
 
+    /** Comprobación guiada de la conexión con Firebase. */
+    suspend fun diagnose(): List<String> = realtime.diagnose()
+
     /**
      * Registra una lápida para que el borrado llegue al resto de dispositivos.
      * Si el registro nunca llegó a subirse no hace falta propagar nada.

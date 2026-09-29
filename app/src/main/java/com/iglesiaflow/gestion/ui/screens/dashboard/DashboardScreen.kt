@@ -14,7 +14,7 @@ import androidx.compose.material.icons.filled.Cake
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.ChildCare
 import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material.icons.filled.VolunteerActivism
@@ -35,12 +35,13 @@ import com.iglesiaflow.gestion.ui.components.SectionCard
 import com.iglesiaflow.gestion.ui.components.StatCard
 import com.iglesiaflow.gestion.ui.theme.StatusInfo
 import com.iglesiaflow.gestion.ui.theme.StatusPositive
+import com.iglesiaflow.gestion.ui.theme.StatusNegative
 import com.iglesiaflow.gestion.ui.theme.StatusWarning
 
 @Composable
 fun DashboardScreen(
     onOpenMembers: () -> Unit,
-    onOpenFinance: () -> Unit,
+    onOpenAttendance: () -> Unit,
     onOpenEvents: () -> Unit,
     onOpenEvent: (Long) -> Unit,
     onOpenMember: (Long) -> Unit,
@@ -76,13 +77,13 @@ fun DashboardScreen(
                     onClick = onOpenMembers
                 )
                 StatCard(
-                    title = "Ofrendas del mes",
-                    value = Formatters.money(state.donationsThisMonth, currency),
-                    subtitle = "Año: ${Formatters.money(state.donationsThisYear, currency)}",
-                    icon = Icons.Filled.Payments,
-                    accent = StatusPositive,
+                    title = "Seguimiento",
+                    value = state.absenceAlerts.size.toString(),
+                    subtitle = "faltan 2+ veces seguidas",
+                    icon = Icons.Filled.NotificationsActive,
+                    accent = if (state.absenceAlerts.isEmpty()) StatusPositive else StatusNegative,
                     modifier = Modifier.weight(1f),
-                    onClick = onOpenFinance
+                    onClick = onOpenAttendance
                 )
             }
         }
@@ -96,7 +97,7 @@ fun DashboardScreen(
                     icon = Icons.Filled.TrendingUp,
                     accent = StatusInfo,
                     modifier = Modifier.weight(1f),
-                    onClick = onOpenEvents
+                    onClick = onOpenAttendance
                 )
                 StatCard(
                     title = "Nuevos este mes",
@@ -123,9 +124,28 @@ fun DashboardScreen(
             }
         }
 
-        item {
-            SectionCard(title = "Tendencia de ofrendas (6 meses)") {
-                LineChart(data = state.donationTrend)
+        if (state.absenceAlerts.isNotEmpty()) {
+            item {
+                SectionCard(title = "Miembros que están faltando") {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        state.absenceAlerts.take(5).forEach { alert ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable(onClick = onOpenAttendance)
+                                    .padding(vertical = 4.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(alert.name, style = MaterialTheme.typography.bodyMedium)
+                                Text(
+                                    "${alert.missedCount} faltas seguidas",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = StatusNegative
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -206,9 +226,9 @@ fun DashboardScreen(
                     modifier = Modifier.weight(1f)
                 )
                 StatCard(
-                    title = "Gastos del mes",
-                    value = Formatters.money(state.expensesThisMonth, currency),
-                    subtitle = "balance ${Formatters.money(state.donationsThisMonth - state.expensesThisMonth, currency)}",
+                    title = "Check-in activos",
+                    value = state.activeCheckIns.toString(),
+                    subtitle = "niños sin retirar",
                     icon = Icons.Filled.CalendarMonth,
                     modifier = Modifier.weight(1f)
                 )

@@ -9,6 +9,7 @@ import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import com.iglesiaflow.gestion.data.local.DatabaseSeeder
 import com.iglesiaflow.gestion.data.remote.RealtimeSyncManager
+import com.iglesiaflow.gestion.data.repository.AttendanceRepository
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,6 +26,7 @@ class IglesiaFlowApp : Application() {
     @Inject lateinit var settingsRepository: SettingsRepository
     @Inject lateinit var localeManager: LocaleManager
     @Inject lateinit var realtimeSyncManager: RealtimeSyncManager
+    @Inject lateinit var attendanceRepository: AttendanceRepository
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -35,6 +37,11 @@ class IglesiaFlowApp : Application() {
         realtimeSyncManager.bind()
         scope.launch {
             runCatching { seeder.seedIfNeeded() }
+            // Aviso a los líderes si alguien acumula faltas seguidas.
+            runCatching {
+                val alerts = attendanceRepository.absenceAlerts().first()
+                attendanceRepository.notifyLeaders(alerts)
+            }
             val settings = settingsRepository.settings.first()
             kotlinx.coroutines.withContext(Dispatchers.Main) {
                 localeManager.apply(settings.languageTag)

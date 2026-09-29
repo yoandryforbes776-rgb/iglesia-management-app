@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.PersonRemove
 import androidx.compose.material3.Card
@@ -41,6 +42,7 @@ import com.iglesiaflow.gestion.core.util.DateTimeUtils
 import com.iglesiaflow.gestion.data.local.entity.MemberEntity
 import com.iglesiaflow.gestion.domain.model.GroupRole
 import com.iglesiaflow.gestion.ui.components.Avatar
+import com.iglesiaflow.gestion.ui.components.ConfirmDialog
 import com.iglesiaflow.gestion.ui.components.DropdownField
 import com.iglesiaflow.gestion.ui.components.FormDialog
 import com.iglesiaflow.gestion.ui.components.SectionCard
@@ -53,6 +55,7 @@ fun GroupDetailScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showAdd by remember { mutableStateOf(false) }
     var messageText by remember { mutableStateOf("") }
+    var messageToDelete by remember { mutableStateOf<Long?>(null) }
 
     Scaffold(
         topBar = {
@@ -128,14 +131,28 @@ fun GroupDetailScreen(
 
             items(state.messages, key = { it.id }) { message ->
                 Card(Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(12.dp)) {
-                        Text(message.authorName, style = MaterialTheme.typography.labelLarge)
-                        Text(message.content, style = MaterialTheme.typography.bodyMedium)
-                        Text(
-                            DateTimeUtils.formatDateTime(message.createdAt),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(12.dp),
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text(message.authorName, style = MaterialTheme.typography.labelLarge)
+                            Text(message.content, style = MaterialTheme.typography.bodyMedium)
+                            Text(
+                                DateTimeUtils.formatDateTime(message.createdAt),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        if (state.canEdit) {
+                            IconButton(onClick = { messageToDelete = message.id }) {
+                                Icon(
+                                    Icons.Filled.DeleteOutline,
+                                    contentDescription = "Eliminar mensaje",
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -155,6 +172,18 @@ fun GroupDetailScreen(
                 }
             }
         }
+    }
+
+    messageToDelete?.let { id ->
+        ConfirmDialog(
+            title = "Eliminar mensaje",
+            message = "¿Seguro que quieres borrar este mensaje del muro? Se eliminará también en el resto de dispositivos.",
+            onConfirm = {
+                viewModel.deleteMessage(id)
+                messageToDelete = null
+            },
+            onDismiss = { messageToDelete = null }
+        )
     }
 
     if (showAdd) {

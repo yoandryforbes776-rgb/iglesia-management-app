@@ -97,6 +97,12 @@ fun SyncScreen(
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Button(onClick = viewModel::syncNow) { Text("Sincronizar ahora") }
+                            OutlinedButton(
+                                onClick = viewModel::runDiagnostics,
+                                enabled = !state.diagnosing
+                            ) {
+                                Text(if (state.diagnosing) "Probando…" else "Probar conexión")
+                            }
                         }
                     }
                 }
@@ -128,6 +134,18 @@ fun SyncScreen(
                         )
                         OutlinedButton(onClick = { viewModel.setDatabaseUrl(databaseUrl) }) {
                             Text("Guardar URL")
+                        }
+                    }
+                }
+            }
+
+            if (state.diagnostics.isNotEmpty()) {
+                item {
+                    SectionCard(title = "Resultado de la prueba") {
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            state.diagnostics.forEach { line ->
+                                Text(line, style = MaterialTheme.typography.bodySmall)
+                            }
                         }
                     }
                 }

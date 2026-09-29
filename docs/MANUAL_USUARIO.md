@@ -32,21 +32,6 @@ y accesos rápidos. Toca cualquier tarjeta para ir al módulo correspondiente.
 * **Familias**: pestaña *Familias*; agrupa miembros con un cabeza de familia y datos comunes.
 * **Exportar**: menú ⋮ → CSV (hoja de cálculo) o PDF (directorio impreso).
 
-## 4. Finanzas
-
-Seis pestañas:
-
-1. **Resumen** – ingresos del periodo, gastos, balance y gráfico mensual. El selector permite ver
-   mes, trimestre, año o histórico.
-2. **Donaciones** – registra diezmos y ofrendas indicando miembro (o anónimo), fondo, importe,
-   método y número de sobre.
-3. **Promesas** – promesas de fe con importe, frecuencia y barra de progreso frente a lo aportado.
-4. **Sobres** – asigna números de sobre por año y consulta el total aportado con cada uno.
-5. **Depósitos** – agrupa donaciones en un depósito bancario: selecciona las pendientes y se
-   marcan como depositadas.
-6. **Gastos** – registro por categoría y proveedor.
-
-Todo se puede exportar a CSV o PDF desde el menú ⋮.
 
 ## 5. Eventos y asistencia
 
@@ -126,3 +111,28 @@ el selector de Android (correo, Drive, WhatsApp…).
 (*Administración → Backup*). Se recomienda crear una copia semanal.
 
 **¿Cómo cambio el idioma?** *Administración → Apariencia e idioma → Idioma*. El cambio es inmediato.
+
+## Asistencia (módulo nuevo)
+
+1. Abre **Asistencia** en la barra inferior.
+2. Arriba verás el bloque **Seguimiento pastoral**: los miembros que han faltado **2 o más veces
+   seguidas** a los últimos cultos. Toca a cualquiera para ver su historial.
+3. Debajo aparece la lista de miembros con su porcentaje de asistencia a los últimos 8 eventos.
+4. Al entrar en un miembro verás un **calendario del mes**: los días en verde son los eventos a los
+   que asistió y los rojos aquellos a los que faltó. Usa las flechas para cambiar de mes.
+5. La app avisa con una **notificación a los líderes** (pastor, administrador y líderes de
+   ministerio) cuando alguien acumula 2 faltas seguidas. Se puede desactivar en
+   *Administración → Notificaciones → Ausencias reiteradas*.
+
+La asistencia se marca como siempre desde **Eventos → abrir el evento → lista de asistentes**.
+
+## Seguridad de la sesión
+
+La sesión se cierra sola tras **30 minutos sin usar la app**. Cualquier toque en la pantalla
+reinicia la cuenta atrás, así que si sigues trabajando nunca te echará fuera. Al volver verás el
+aviso "Tu sesión se cerró automáticamente" en la pantalla de acceso.
+
+## Mensajes del muro de un grupo
+
+En **Grupos → abrir un grupo**, cada mensaje del muro tiene una papelera a la derecha (solo para
+quien puede editar grupos). Al borrarlo desaparece también en el resto de dispositivos.

@@ -7,12 +7,10 @@ import com.iglesiaflow.gestion.core.config.AppSettings
 import com.iglesiaflow.gestion.core.config.SettingsRepository
 import com.iglesiaflow.gestion.core.security.SessionManager
 import com.iglesiaflow.gestion.data.local.entity.CustomFieldDefEntity
-import com.iglesiaflow.gestion.data.local.entity.DonationEntity
 import com.iglesiaflow.gestion.data.local.entity.FamilyEntity
 import com.iglesiaflow.gestion.data.local.entity.MemberEntity
 import com.iglesiaflow.gestion.data.local.entity.NoteEntity
 import com.iglesiaflow.gestion.data.local.entity.VolunteerSkillEntity
-import com.iglesiaflow.gestion.data.repository.FinanceRepository
 import com.iglesiaflow.gestion.data.repository.MemberRepository
 import com.iglesiaflow.gestion.data.repository.VolunteerRepository
 import com.iglesiaflow.gestion.domain.model.CustomFieldEntity
@@ -33,19 +31,17 @@ data class MemberDetailUiState(
     val notes: List<NoteEntity> = emptyList(),
     val customFields: List<CustomFieldDefEntity> = emptyList(),
     val customValues: Map<Long, String> = emptyMap(),
-    val donations: List<DonationEntity> = emptyList(),
     val skills: List<VolunteerSkillEntity> = emptyList(),
     val families: List<FamilyEntity> = emptyList(),
     val settings: AppSettings = AppSettings(),
     val canEdit: Boolean = false,
-    val canSeeFinance: Boolean = false
+    val canSeeAttendance: Boolean = true
 )
 
 @HiltViewModel
 class MemberDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: MemberRepository,
-    financeRepository: FinanceRepository,
     volunteerRepository: VolunteerRepository,
     settingsRepository: SettingsRepository,
     private val sessionManager: SessionManager
@@ -75,29 +71,24 @@ class MemberDetailViewModel @Inject constructor(
 
     val uiState: StateFlow<MemberDetailUiState> = combine(
         profile,
-        financeRepository.donationsByMember(memberId),
         volunteerRepository.skillsFor(memberId),
         settingsRepository.settings,
         familyState
-    ) { profile, donations, skills, settings, family ->
+    ) { profile, skills, settings, family ->
         MemberDetailUiState(
             member = profile.member,
             family = family,
             notes = profile.notes,
             customFields = profile.fields,
             customValues = profile.values,
-            donations = if (sessionManager.has(Permission.FINANCE_VIEW)) donations else emptyList(),
             skills = skills,
             families = profile.families,
             settings = settings,
             canEdit = sessionManager.has(Permission.MEMBERS_EDIT),
-            canSeeFinance = sessionManager.has(Permission.FINANCE_VIEW)
+            canSeeAttendance = sessionManager.has(Permission.ATTENDANCE_VIEW)
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), MemberDetailUiState())
 
-    val totalDonated: StateFlow<Double> = financeRepository.donationsByMember(memberId)
-        .map { list -> list.sumOf { it.amount } }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0.0)
 
     fun save(member: MemberEntity, customValues: Map<Long, String>) {
         viewModelScope.launch {

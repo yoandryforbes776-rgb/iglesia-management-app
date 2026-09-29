@@ -122,8 +122,12 @@ fun AdminHomeScreen(
                     SwitchRow("Check-in infantil", null, settings.notifyCheckIn) {
                         settingsViewModel.setNotification("checkin", it)
                     }
-                    SwitchRow("Donaciones registradas", null, settings.notifyDonations) {
-                        settingsViewModel.setNotification("donations", it)
+                    SwitchRow(
+                        "Ausencias reiteradas",
+                        "Avisar a los líderes cuando alguien falte 2 veces seguidas",
+                        settings.notifyAbsences
+                    ) {
+                        settingsViewModel.setNotification("absences", it)
                     }
                     SwitchRow("Peticiones de oración", null, settings.notifyPrayer) {
                         settingsViewModel.setNotification("prayer", it)

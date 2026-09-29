@@ -25,7 +25,8 @@ class NotificationHelper @Inject constructor(@ApplicationContext private val con
             NotificationChannel(CHANNEL_EVENTS, "Recordatorios de eventos", NotificationManager.IMPORTANCE_DEFAULT),
             NotificationChannel(CHANNEL_CHECKIN, "Check-in infantil", NotificationManager.IMPORTANCE_HIGH),
             NotificationChannel(CHANNEL_BIRTHDAYS, "Cumpleaños", NotificationManager.IMPORTANCE_LOW),
-            NotificationChannel(CHANNEL_PRAYER, "Peticiones de oración", NotificationManager.IMPORTANCE_LOW)
+            NotificationChannel(CHANNEL_PRAYER, "Peticiones de oración", NotificationManager.IMPORTANCE_LOW),
+            NotificationChannel(CHANNEL_ATTENDANCE, "Ausencias reiteradas", NotificationManager.IMPORTANCE_HIGH)
         )
         channels.forEach { manager.createNotificationChannel(it) }
     }
@@ -50,5 +51,6 @@ class NotificationHelper @Inject constructor(@ApplicationContext private val con
         const val CHANNEL_CHECKIN = "iglesiaflow_checkin"
         const val CHANNEL_BIRTHDAYS = "iglesiaflow_birthdays"
         const val CHANNEL_PRAYER = "iglesiaflow_prayer"
+        const val CHANNEL_ATTENDANCE = "iglesiaflow_attendance"
     }
 }

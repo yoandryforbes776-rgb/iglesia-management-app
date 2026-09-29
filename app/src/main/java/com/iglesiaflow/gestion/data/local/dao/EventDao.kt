@@ -10,6 +10,18 @@ import com.iglesiaflow.gestion.data.local.entity.CheckInEntity
 import com.iglesiaflow.gestion.data.local.entity.EventEntity
 import kotlinx.coroutines.flow.Flow
 
+/** Una fila por evento pasado con el estado de asistencia de un miembro. */
+data class MemberAttendanceRow(
+    val eventId: Long,
+    val title: String,
+    val startAt: Long,
+    val type: String,
+    val present: Boolean
+)
+
+/** Par mínimo usado para calcular ausencias reiteradas. */
+data class AttendanceFact(val eventId: Long, val memberId: Long, val present: Boolean)
+
 data class AttendanceRow(
     val memberId: Long,
     val firstName: String,
@@ -95,6 +107,29 @@ interface EventDao {
         """
     )
     fun attendanceByEvent(limit: Int): Flow<List<LabeledTotal>>
+
+    @Query("SELECT * FROM events WHERE startAt <= :now ORDER BY startAt DESC LIMIT :limit")
+    fun observePastEvents(now: Long, limit: Int): Flow<List<EventEntity>>
+
+    @Query("SELECT eventId, memberId, present FROM attendance")
+    fun observeAttendanceFacts(): Flow<List<AttendanceFact>>
+
+    @Query(
+        """
+        SELECT e.id AS eventId, e.title AS title, e.startAt AS startAt, e.type AS type,
+               CASE WHEN a.present = 1 THEN 1 ELSE 0 END AS present
+        FROM events e LEFT JOIN attendance a ON a.eventId = e.id AND a.memberId = :memberId
+        WHERE e.startAt BETWEEN :from AND :to
+        ORDER BY e.startAt ASC
+        """
+    )
+    fun observeMemberAttendance(memberId: Long, from: Long, to: Long): Flow<List<MemberAttendanceRow>>
+
+    @Query("SELECT COUNT(*) FROM events WHERE startAt <= :now")
+    fun countPastEvents(now: Long): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM attendance WHERE memberId = :memberId AND present = 1")
+    fun countMemberPresences(memberId: Long): Flow<Int>
 
     // ---- Check-in infantil ----
     @Query("SELECT * FROM check_ins WHERE eventId = :eventId ORDER BY checkInAt DESC")

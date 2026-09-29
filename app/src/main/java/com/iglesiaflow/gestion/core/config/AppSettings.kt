@@ -21,7 +21,7 @@ data class AppSettings(
     val notifyEvents: Boolean = true,
     val notifyBirthdays: Boolean = true,
     val notifyCheckIn: Boolean = true,
-    val notifyDonations: Boolean = false,
+    val notifyAbsences: Boolean = true,
     val notifyPrayer: Boolean = true,
     val cloudSyncEnabled: Boolean = false,
     /** Nodo compartido en la nube; todos los dispositivos de la misma iglesia usan el mismo código. */
@@ -32,7 +32,8 @@ data class AppSettings(
     val sessionTimeoutMinutes: Int = 30,
     val privacyConsentAccepted: Boolean = false,
     val kioskModeEnabled: Boolean = false,
-    val lastBackupAt: Long? = null
+    val lastBackupAt: Long? = null,
+    val lastAbsenceAlertAt: Long = 0L
 ) {
     fun isModuleEnabled(module: AppModule): Boolean =
         module in AppModule.alwaysOn || enabledModules.contains(module.key)

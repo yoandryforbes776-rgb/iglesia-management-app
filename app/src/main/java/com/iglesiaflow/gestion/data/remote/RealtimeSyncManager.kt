@@ -47,6 +47,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withTimeoutOrNull
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Provider
@@ -120,6 +121,69 @@ class RealtimeSyncManager @Inject constructor(
                     }
                 }
         }
+    }
+
+    /**
+     * Comprobación guiada de la conexión: informa paso a paso de qué falla
+     * (archivo de configuración, URL, permisos, reglas...) en lenguaje claro.
+     */
+    suspend fun diagnose(): List<String> {
+        val lines = mutableListOf<String>()
+        if (!gateway.isAvailable) {
+            lines += "❌ Esta APK no incluye google-services.json: vuelve a compilarla con el archivo de tu proyecto."
+            return lines
+        }
+        lines += "✅ La APK incluye la configuración de Firebase."
+
+        val settings = settingsRepository.settings.first()
+        val database = runCatching { databaseFor(settings.cloudDatabaseUrl) }.getOrElse { error ->
+            lines += "❌ No hay dirección de Realtime Database: ${error.message}. " +
+                "Crea la base de datos en la consola y vuelve a descargar google-services.json, " +
+                "o pega la URL en el campo de abajo."
+            return lines
+        }
+        lines += "✅ Base de datos: ${database.reference}"
+
+        val uid = runCatching {
+            val auth = Firebase.auth
+            if (auth.currentUser == null) auth.signInAnonymously().await()
+            auth.currentUser?.uid
+        }.getOrElse { error ->
+            lines += "❌ No se pudo iniciar sesión anónima: ${error.message}. " +
+                "Activa Authentication → Sign-in method → Anónimo en la consola de Firebase."
+            null
+        }
+        if (uid != null) lines += "✅ Sesión anónima iniciada (${uid.take(8)}…)."
+
+        val churchId = settings.cloudChurchId.ifBlank { DEFAULT_CHURCH }
+        val probe = database.reference.child(CHURCHES).child(churchId).child("_health").child("probe")
+        val stamp = System.currentTimeMillis()
+        val written = withTimeoutOrNull(PROBE_TIMEOUT_MS) {
+            runCatching { probe.setValue(mapOf(FIELD_UPDATED_AT to stamp)).await() }
+        }
+        when {
+            written == null -> lines += "❌ La escritura de prueba no respondió en 10 s: revisa la conexión a internet."
+            written.isFailure -> lines += "❌ Escritura rechazada: ${written.exceptionOrNull()?.message}. " +
+                "Suele significar que las reglas de la base de datos no permiten escribir (publica las reglas de docs/FIREBASE.md)."
+            else -> lines += "✅ Escritura de prueba correcta."
+        }
+
+        val read = withTimeoutOrNull(PROBE_TIMEOUT_MS) {
+            runCatching { probe.get().await().child(FIELD_UPDATED_AT).getValue(Long::class.java) }
+        }
+        when {
+            read == null -> lines += "❌ La lectura de prueba no respondió en 10 s."
+            read.isFailure -> lines += "❌ Lectura rechazada: ${read.exceptionOrNull()?.message}."
+            read.getOrNull() == stamp -> lines += "✅ Lectura de prueba correcta: la nube responde bien."
+            else -> lines += "⚠️ La lectura devolvió un valor distinto al escrito."
+        }
+
+        lines += if (settings.cloudSyncEnabled) {
+            "✅ El interruptor de sincronización está encendido (código de iglesia: $churchId)."
+        } else {
+            "⚠️ El interruptor de sincronización está apagado: enciéndelo para sincronizar."
+        }
+        return lines
     }
 
     /** Fuerza una subida inmediata de todo lo pendiente. */
@@ -763,6 +827,7 @@ class RealtimeSyncManager @Inject constructor(
     companion object {
         private const val TAG = "RealtimeSync"
         private const val CHURCHES = "churches"
+        private const val PROBE_TIMEOUT_MS = 10_000L
         const val DEFAULT_CHURCH = "principal"
         const val FIELD_UPDATED_AT = "updatedAt"
         const val FIELD_DELETED = "deleted"

@@ -41,7 +41,8 @@ class SettingsRepository @Inject constructor(@ApplicationContext private val con
             prefs[Keys.notifyEvents] = updated.notifyEvents
             prefs[Keys.notifyBirthdays] = updated.notifyBirthdays
             prefs[Keys.notifyCheckIn] = updated.notifyCheckIn
-            prefs[Keys.notifyDonations] = updated.notifyDonations
+            prefs[Keys.notifyAbsences] = updated.notifyAbsences
+            prefs[Keys.lastAbsenceAlertAt] = updated.lastAbsenceAlertAt
             prefs[Keys.notifyPrayer] = updated.notifyPrayer
             prefs[Keys.cloudSync] = updated.cloudSyncEnabled
             prefs[Keys.cloudChurchId] = updated.cloudChurchId
@@ -77,7 +78,8 @@ class SettingsRepository @Inject constructor(@ApplicationContext private val con
             notifyEvents = this[Keys.notifyEvents] ?: defaults.notifyEvents,
             notifyBirthdays = this[Keys.notifyBirthdays] ?: defaults.notifyBirthdays,
             notifyCheckIn = this[Keys.notifyCheckIn] ?: defaults.notifyCheckIn,
-            notifyDonations = this[Keys.notifyDonations] ?: defaults.notifyDonations,
+            notifyAbsences = this[Keys.notifyAbsences] ?: defaults.notifyAbsences,
+            lastAbsenceAlertAt = this[Keys.lastAbsenceAlertAt] ?: defaults.lastAbsenceAlertAt,
             notifyPrayer = this[Keys.notifyPrayer] ?: defaults.notifyPrayer,
             cloudSyncEnabled = this[Keys.cloudSync] ?: defaults.cloudSyncEnabled,
             cloudChurchId = this[Keys.cloudChurchId] ?: defaults.cloudChurchId,
@@ -104,7 +106,8 @@ class SettingsRepository @Inject constructor(@ApplicationContext private val con
         val notifyEvents = booleanPreferencesKey("notify_events")
         val notifyBirthdays = booleanPreferencesKey("notify_birthdays")
         val notifyCheckIn = booleanPreferencesKey("notify_checkin")
-        val notifyDonations = booleanPreferencesKey("notify_donations")
+        val notifyAbsences = booleanPreferencesKey("notify_absences")
+        val lastAbsenceAlertAt = longPreferencesKey("last_absence_alert_at")
         val notifyPrayer = booleanPreferencesKey("notify_prayer")
         val cloudSync = booleanPreferencesKey("cloud_sync")
         val cloudChurchId = stringPreferencesKey("cloud_church_id")

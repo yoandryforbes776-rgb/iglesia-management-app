@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -51,10 +52,10 @@ import com.iglesiaflow.gestion.ui.components.SwitchRow
 @Composable
 fun MemberDetailScreen(
     onBack: () -> Unit,
+    onOpenAttendance: (Long) -> Unit = {},
     viewModel: MemberDetailViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val totalDonated by viewModel.totalDonated.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var showEdit by remember { mutableStateOf(false) }
     var showNote by remember { mutableStateOf(false) }
@@ -181,18 +182,17 @@ fun MemberDetailScreen(
                 }
             }
 
-            if (state.canSeeFinance) {
+            if (state.canSeeAttendance) {
                 item {
-                    SectionCard(title = "Aportaciones") {
-                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            DetailRow("Total aportado", Formatters.money(totalDonated, state.settings.currencyCode))
-                            state.donations.take(8).forEach { donation ->
-                                DetailRow(
-                                    DateTimeUtils.formatDate(donation.date),
-                                    "${Formatters.money(donation.amount, state.settings.currencyCode)} · ${donation.type.label}"
-                                )
+                    SectionCard(title = "Asistencia") {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                "Consulta el calendario de asistencia de este miembro.",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Button(onClick = { onOpenAttendance(state.member?.id ?: 0L) }) {
+                                Text("Ver calendario de asistencia")
                             }
-                            if (state.donations.isEmpty()) Text("Sin aportaciones registradas")
                         }
                     }
                 }

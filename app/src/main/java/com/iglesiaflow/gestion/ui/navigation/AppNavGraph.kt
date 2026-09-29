@@ -15,13 +15,14 @@ import com.iglesiaflow.gestion.ui.screens.admin.CustomFieldsScreen
 import com.iglesiaflow.gestion.ui.screens.admin.RolesScreen
 import com.iglesiaflow.gestion.ui.screens.admin.SyncScreen
 import com.iglesiaflow.gestion.ui.screens.admin.UsersScreen
+import com.iglesiaflow.gestion.ui.screens.attendance.AttendanceScreen
+import com.iglesiaflow.gestion.ui.screens.attendance.MemberAttendanceScreen
 import com.iglesiaflow.gestion.ui.screens.communication.CommunicationScreen
 import com.iglesiaflow.gestion.ui.screens.communication.PrayerScreen
 import com.iglesiaflow.gestion.ui.screens.dashboard.DashboardScreen
 import com.iglesiaflow.gestion.ui.screens.events.CheckInScreen
 import com.iglesiaflow.gestion.ui.screens.events.EventDetailScreen
 import com.iglesiaflow.gestion.ui.screens.events.EventsScreen
-import com.iglesiaflow.gestion.ui.screens.finance.FinanceScreen
 import com.iglesiaflow.gestion.ui.screens.groups.GroupDetailScreen
 import com.iglesiaflow.gestion.ui.screens.groups.GroupsScreen
 import com.iglesiaflow.gestion.ui.screens.members.FamiliesScreen
@@ -43,7 +44,7 @@ fun AppNavGraph(
         composable(Destination.DASHBOARD.route) {
             DashboardScreen(
                 onOpenMembers = { navController.navigate(Destination.MEMBERS.route) },
-                onOpenFinance = { navController.navigate(Destination.FINANCE.route) },
+                onOpenAttendance = { navController.navigate(Destination.ATTENDANCE.route) },
                 onOpenEvents = { navController.navigate(Destination.EVENTS.route) },
                 onOpenEvent = { id -> navController.navigate(Routes.eventDetail(id)) },
                 onOpenMember = { id -> navController.navigate(Routes.memberDetail(id)) }
@@ -59,9 +60,22 @@ fun AppNavGraph(
             route = Routes.MEMBER_DETAIL,
             arguments = listOf(navArgument("memberId") { type = NavType.LongType })
         ) {
-            MemberDetailScreen(onBack = { navController.popBackStack() })
+            MemberDetailScreen(
+                onBack = { navController.popBackStack() },
+                onOpenAttendance = { id -> navController.navigate(Routes.memberAttendance(id)) }
+            )
         }
-        composable(Destination.FINANCE.route) { FinanceScreen() }
+        composable(Destination.ATTENDANCE.route) {
+            AttendanceScreen(
+                onOpenMemberAttendance = { id -> navController.navigate(Routes.memberAttendance(id)) }
+            )
+        }
+        composable(
+            route = Routes.MEMBER_ATTENDANCE,
+            arguments = listOf(navArgument("memberId") { type = NavType.LongType })
+        ) {
+            MemberAttendanceScreen(onBack = { navController.popBackStack() })
+        }
         composable(Destination.EVENTS.route) {
             EventsScreen(
                 onOpenEvent = { id -> navController.navigate(Routes.eventDetail(id)) },

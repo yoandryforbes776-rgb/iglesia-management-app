@@ -10,7 +10,8 @@ import com.iglesiaflow.gestion.data.local.entity.EventEntity
 import com.iglesiaflow.gestion.data.local.entity.MemberEntity
 import com.iglesiaflow.gestion.data.repository.CommunicationRepository
 import com.iglesiaflow.gestion.data.repository.EventRepository
-import com.iglesiaflow.gestion.data.repository.FinanceRepository
+import com.iglesiaflow.gestion.data.repository.AbsenceAlert
+import com.iglesiaflow.gestion.data.repository.AttendanceRepository
 import com.iglesiaflow.gestion.data.repository.GroupRepository
 import com.iglesiaflow.gestion.data.repository.MemberRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -28,10 +29,7 @@ data class DashboardUiState(
     val newMembers: Int = 0,
     val families: Int = 0,
     val groups: Int = 0,
-    val donationsThisMonth: Double = 0.0,
-    val donationsThisYear: Double = 0.0,
-    val expensesThisMonth: Double = 0.0,
-    val donationTrend: List<Pair<String, Double>> = emptyList(),
+    val absenceAlerts: List<AbsenceAlert> = emptyList(),
     val upcomingEvents: List<EventEntity> = emptyList(),
     val birthdays: List<MemberEntity> = emptyList(),
     val openPrayers: Int = 0,
@@ -40,12 +38,6 @@ data class DashboardUiState(
 )
 
 private data class Counters(val total: Int, val active: Int, val new: Int, val families: Int, val groups: Int)
-private data class FinanceSnapshot(
-    val month: Double,
-    val year: Double,
-    val expenses: Double,
-    val trend: List<Pair<String, Double>>
-)
 private data class ActivitySnapshot(
     val events: List<EventEntity>,
     val birthdays: List<MemberEntity>,
@@ -57,7 +49,7 @@ private data class ActivitySnapshot(
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     memberRepository: MemberRepository,
-    financeRepository: FinanceRepository,
+    private val attendanceRepository: AttendanceRepository,
     eventRepository: EventRepository,
     groupRepository: GroupRepository,
     communicationRepository: CommunicationRepository,
@@ -66,7 +58,6 @@ class DashboardViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val monthStart = DateTimeUtils.startOfMonth()
-    private val yearStart = DateTimeUtils.startOfYear()
     private val now = System.currentTimeMillis()
 
     private val counters = combine(
@@ -76,15 +67,6 @@ class DashboardViewModel @Inject constructor(
         memberRepository.totalFamilies(),
         groupRepository.activeGroups()
     ) { total, active, new, families, groups -> Counters(total, active, new, families, groups) }
-
-    private val finance = combine(
-        financeRepository.totalBetween(monthStart, now),
-        financeRepository.totalBetween(yearStart, now),
-        financeRepository.expensesBetween(monthStart, now),
-        financeRepository.byMonth(DateTimeUtils.monthsAgo(5), now)
-    ) { month, year, expenses, trend ->
-        FinanceSnapshot(month, year, expenses, trend.map { DateTimeUtils.formatPeriod(it.period) to it.total })
-    }
 
     private val activity = combine(
         eventRepository.upcoming(5),
@@ -98,11 +80,11 @@ class DashboardViewModel @Inject constructor(
 
     val uiState: StateFlow<DashboardUiState> = combine(
         counters,
-        finance,
+        attendanceRepository.absenceAlerts(),
         activity,
         settingsRepository.settings,
         sessionManager.currentUser
-    ) { counters, finance, activity, settings, user ->
+    ) { counters, alerts, activity, settings, user ->
         DashboardUiState(
             settings = settings,
             userName = user?.name.orEmpty(),
@@ -111,10 +93,7 @@ class DashboardViewModel @Inject constructor(
             newMembers = counters.new,
             families = counters.families,
             groups = counters.groups,
-            donationsThisMonth = finance.month,
-            donationsThisYear = finance.year,
-            expensesThisMonth = finance.expenses,
-            donationTrend = finance.trend,
+            absenceAlerts = alerts,
             upcomingEvents = activity.events,
             birthdays = activity.birthdays,
             openPrayers = activity.prayers,

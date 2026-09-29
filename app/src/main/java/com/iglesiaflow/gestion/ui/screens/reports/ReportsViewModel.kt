@@ -11,7 +11,8 @@ import com.iglesiaflow.gestion.core.util.Formatters
 import com.iglesiaflow.gestion.data.local.dao.StatusCount
 import com.iglesiaflow.gestion.data.local.entity.MemberEntity
 import com.iglesiaflow.gestion.data.repository.EventRepository
-import com.iglesiaflow.gestion.data.repository.FinanceRepository
+import com.iglesiaflow.gestion.data.repository.AbsenceAlert
+import com.iglesiaflow.gestion.data.repository.AttendanceRepository
 import com.iglesiaflow.gestion.data.repository.MemberRepository
 import com.iglesiaflow.gestion.domain.model.Permission
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,7 +25,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /** Entidades disponibles en el constructor de consultas ad-hoc. */
-enum class QueryEntity(val label: String) { MIEMBROS("Miembros"), DONACIONES("Donaciones"), EVENTOS("Eventos") }
+enum class QueryEntity(val label: String) { MIEMBROS("Miembros"), EVENTOS("Eventos") }
 enum class QueryOperator(val label: String) {
     CONTIENE("contiene"), IGUAL("es igual a"), MAYOR("es mayor que"), MENOR("es menor que")
 }
@@ -34,13 +35,9 @@ data class QueryResult(val headers: List<String> = emptyList(), val rows: List<L
 data class ReportsUiState(
     val members: List<MemberEntity> = emptyList(),
     val byStatus: List<StatusCount> = emptyList(),
-    val donationTrend: List<Pair<String, Double>> = emptyList(),
-    val donationsByFund: List<Pair<String, Double>> = emptyList(),
     val attendanceTrend: List<Pair<String, Double>> = emptyList(),
     val attendanceByEvent: List<Pair<String, Double>> = emptyList(),
-    val topDonors: List<Pair<String, Double>> = emptyList(),
-    val incomeYear: Double = 0.0,
-    val expensesYear: Double = 0.0,
+    val absenceAlerts: List<AbsenceAlert> = emptyList(),
     val settings: AppSettings = AppSettings(),
     val queryResult: QueryResult = QueryResult(),
     val canExport: Boolean = false,
@@ -50,41 +47,16 @@ data class ReportsUiState(
 @HiltViewModel
 class ReportsViewModel @Inject constructor(
     private val memberRepository: MemberRepository,
-    private val financeRepository: FinanceRepository,
+    private val attendanceRepository: AttendanceRepository,
     private val eventRepository: EventRepository,
     private val exportManager: ExportManager,
     private val sessionManager: SessionManager,
     settingsRepository: SettingsRepository
 ) : ViewModel() {
 
-    private val yearStart = DateTimeUtils.startOfYear()
     private val now = System.currentTimeMillis()
     private val queryResult = MutableStateFlow(QueryResult())
     private val message = MutableStateFlow<String?>(null)
-
-    private val financials = combine(
-        financeRepository.byMonth(DateTimeUtils.monthsAgo(11), now),
-        financeRepository.byFund(),
-        financeRepository.topDonors(yearStart, now, 10),
-        financeRepository.totalBetween(yearStart, now),
-        financeRepository.expensesBetween(yearStart, now)
-    ) { trend, byFund, donors, income, expenses ->
-        Financials(
-            trend.map { DateTimeUtils.formatPeriod(it.period) to it.total },
-            byFund.map { it.label to it.total },
-            donors.map { it.label to it.total },
-            income,
-            expenses
-        )
-    }
-
-    private data class Financials(
-        val trend: List<Pair<String, Double>>,
-        val byFund: List<Pair<String, Double>>,
-        val donors: List<Pair<String, Double>>,
-        val income: Double,
-        val expenses: Double
-    )
 
     private val attendance = combine(
         eventRepository.attendanceByMonth(DateTimeUtils.monthsAgo(11), now),
@@ -95,21 +67,17 @@ class ReportsViewModel @Inject constructor(
 
     val uiState: StateFlow<ReportsUiState> = combine(
         combine(memberRepository.members(), memberRepository.membersByStatus()) { members, status -> members to status },
-        financials,
+        attendanceRepository.absenceAlerts(),
         attendance,
         combine(queryResult, message) { result, msg -> result to msg },
         settingsRepository.settings
-    ) { membersAndStatus, finance, attendanceData, queryAndMessage, settings ->
+    ) { membersAndStatus, alerts, attendanceData, queryAndMessage, settings ->
         ReportsUiState(
             members = membersAndStatus.first,
             byStatus = membersAndStatus.second,
-            donationTrend = finance.trend,
-            donationsByFund = finance.byFund,
             attendanceTrend = attendanceData.first,
             attendanceByEvent = attendanceData.second,
-            topDonors = finance.donors,
-            incomeYear = finance.income,
-            expensesYear = finance.expenses,
+            absenceAlerts = alerts,
             settings = settings,
             queryResult = queryAndMessage.first,
             canExport = sessionManager.has(Permission.REPORTS_EXPORT),
@@ -138,29 +106,6 @@ class ReportsViewModel @Inject constructor(
                     QueryResult(
                         headers = listOf("Nombre", "Estado", "Teléfono", "Email", "Ciudad"),
                         rows = members.map { listOf(it.fullName, it.status.label, it.phone, it.email, it.city) }
-                    )
-                }
-                QueryEntity.DONACIONES -> {
-                    val members = memberRepository.allMembers().associateBy { it.id }
-                    val donations = financeRepository.allDonations().filter { donation ->
-                        val candidate = when (field) {
-                            "Importe" -> donation.amount.toString()
-                            "Tipo" -> donation.type.label
-                            "Método" -> donation.method.label
-                            else -> members[donation.memberId]?.fullName.orEmpty()
-                        }
-                        matches(candidate, operator, value)
-                    }
-                    QueryResult(
-                        headers = listOf("Fecha", "Miembro", "Importe", "Tipo"),
-                        rows = donations.map {
-                            listOf(
-                                DateTimeUtils.formatDate(it.date),
-                                members[it.memberId]?.fullName ?: "Anónimo",
-                                Formatters.decimal(it.amount),
-                                it.type.label
-                            )
-                        }
                     )
                 }
                 QueryEntity.EVENTOS -> {
@@ -205,22 +150,27 @@ class ReportsViewModel @Inject constructor(
         }
     }
 
-    fun exportFinancialPdf() {
+    fun exportAbsencesCsv() {
         viewModelScope.launch {
-            val state = uiState.value
-            val file = exportManager.writePdf(
-                baseName = "reporte_financiero",
-                title = "Reporte financiero anual",
-                subtitle = "${state.settings.churchName} · ingresos " +
-                    "${Formatters.money(state.incomeYear, state.settings.currencyCode)} · gastos " +
-                    Formatters.money(state.expensesYear, state.settings.currencyCode),
-                headers = listOf("Concepto", "Importe"),
-                rows = state.donationsByFund.map {
-                    listOf(it.first, Formatters.money(it.second, state.settings.currencyCode))
+            val alerts = uiState.value.absenceAlerts
+            if (alerts.isEmpty()) {
+                message.value = "No hay ausencias reiteradas que exportar"
+                return@launch
+            }
+            val file = exportManager.writeCsv(
+                baseName = "ausencias_reiteradas",
+                headers = listOf("Miembro", "Faltas seguidas", "Teléfono", "Última asistencia"),
+                rows = alerts.map {
+                    listOf(
+                        it.name,
+                        it.missedCount.toString(),
+                        it.phone,
+                        it.lastAttendedAt?.let { date -> DateTimeUtils.formatDate(date) } ?: "sin registro"
+                    )
                 }
             )
             exportManager.share(file)
-            message.value = "Reporte financiero generado"
+            message.value = "Listado de ausencias exportado"
         }
     }
 

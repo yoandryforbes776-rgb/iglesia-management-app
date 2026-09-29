@@ -35,6 +35,7 @@ import com.iglesiaflow.gestion.ui.components.InfoBanner
 @Composable
 fun LoginScreen(
     settings: AppSettings,
+    notice: String? = null,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -47,6 +48,10 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        if (notice != null) {
+            InfoBanner(notice)
+            Spacer(Modifier.height(16.dp))
+        }
         Avatar(name = settings.churchName, photoUri = settings.logoUri, size = 84)
         Spacer(Modifier.height(16.dp))
         Text(settings.churchName, style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
