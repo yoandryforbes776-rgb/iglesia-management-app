@@ -26,12 +26,27 @@ data class SyncUiState(
         get() = when {
             !status.enabled -> "Sincronización desactivada"
             !status.available -> "Falta google-services.json"
-            status.error != null -> "Error: ${status.error}"
+            status.error != null -> friendlyError(status.error)
             status.syncing -> "Sincronizando…"
             pending > 0 -> "$pending cambios pendientes"
             status.connected -> "Al día"
             else -> "Sin conexión"
         }
+}
+
+/** Traduce los errores técnicos de Firebase a instrucciones concretas. */
+internal fun friendlyError(raw: String?): String {
+    val text = raw.orEmpty()
+    return when {
+        text.contains("Permission denied", ignoreCase = true) ->
+            "Firebase rechaza los datos: publica las reglas y activa Authentication → Anónimo"
+        text.contains("CONFIGURATION_NOT_FOUND", ignoreCase = true) ->
+            "Falta activar Authentication en la consola de Firebase (botón Comenzar)"
+        text.contains("Can't determine Firebase Database URL", ignoreCase = true) ->
+            "Falta la dirección de la base de datos: pégala más abajo"
+        text.isBlank() -> "Error desconocido de sincronización"
+        else -> "Error: $text"
+    }
 }
 
 @HiltViewModel

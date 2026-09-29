@@ -35,6 +35,8 @@ import com.iglesiaflow.gestion.domain.model.MaritalStatus
 import com.iglesiaflow.gestion.domain.model.MemberStatus
 import com.iglesiaflow.gestion.domain.model.PrayerStatus
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -91,6 +93,9 @@ class RealtimeSyncManager @Inject constructor(
     private var connectionListener: ValueEventListener? = null
     private var connectionRef: DatabaseReference? = null
     private var currentRoot: DatabaseReference? = null
+    private var lastChurchId: String = DEFAULT_CHURCH
+    private var lastDatabaseUrl: String = ""
+    private var retryJob: Job? = null
 
     private val _status = MutableStateFlow(RealtimeStatus())
     val status: StateFlow<RealtimeStatus> = _status.asStateFlow()
@@ -106,6 +111,8 @@ class RealtimeSyncManager @Inject constructor(
                 .map { Triple(it.cloudSyncEnabled, it.cloudChurchId, it.cloudDatabaseUrl) }
                 .distinctUntilChanged()
                 .collect { (enabled, churchId, databaseUrl) ->
+                    lastChurchId = churchId.ifBlank { DEFAULT_CHURCH }
+                    lastDatabaseUrl = databaseUrl
                     detach()
                     _status.value = _status.value.copy(
                         enabled = enabled,
@@ -113,11 +120,10 @@ class RealtimeSyncManager @Inject constructor(
                         error = null
                     )
                     if (enabled && gateway.isAvailable) {
-                        runCatching { attach(churchId.ifBlank { DEFAULT_CHURCH }, databaseUrl) }
-                            .onFailure { failure ->
-                                Log.w(TAG, "No se pudo iniciar la sincronización", failure)
-                                _status.value = _status.value.copy(error = failure.message)
-                            }
+                        connect()
+                        startRetryLoop()
+                    } else {
+                        retryJob?.cancel()
                     }
                 }
         }
@@ -186,9 +192,44 @@ class RealtimeSyncManager @Inject constructor(
         return lines
     }
 
-    /** Fuerza una subida inmediata de todo lo pendiente. */
+    /** Fuerza una subida inmediata; si había error, reintenta la conexión entera. */
     fun syncNow() {
-        scope.launch { pushPending() }
+        scope.launch {
+            if (_status.value.error != null && _status.value.enabled && gateway.isAvailable) {
+                connect()
+            }
+            pushPending()
+        }
+    }
+
+    private suspend fun connect() {
+        detach()
+        runCatching { attach(lastChurchId, lastDatabaseUrl) }
+            .onSuccess { _status.value = _status.value.copy(error = null) }
+            .onFailure { failure ->
+                Log.w(TAG, "No se pudo iniciar la sincronización", failure)
+                _status.value = _status.value.copy(error = failure.message)
+            }
+    }
+
+    /**
+     * Si Firebase rechaza la conexión (reglas sin publicar, acceso anónimo sin
+     * activar...), se reintenta cada minuto: en cuanto se corrija en la consola
+     * la app se engancha sola, sin reinstalar ni reiniciar.
+     */
+    private fun startRetryLoop() {
+        retryJob?.cancel()
+        retryJob = scope.launch {
+            while (true) {
+                delay(RETRY_INTERVAL_MS)
+                val current = _status.value
+                if (current.enabled && current.available && current.error != null) {
+                    Log.i(TAG, "Reintentando la conexión con Firebase…")
+                    connect()
+                    if (_status.value.error == null) pushPending()
+                }
+            }
+        }
     }
 
     /**
@@ -828,6 +869,7 @@ class RealtimeSyncManager @Inject constructor(
         private const val TAG = "RealtimeSync"
         private const val CHURCHES = "churches"
         private const val PROBE_TIMEOUT_MS = 10_000L
+        private const val RETRY_INTERVAL_MS = 60_000L
         const val DEFAULT_CHURCH = "principal"
         const val FIELD_UPDATED_AT = "updatedAt"
         const val FIELD_DELETED = "deleted"
