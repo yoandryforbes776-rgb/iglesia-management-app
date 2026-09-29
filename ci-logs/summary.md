@@ -1,4 +1,4 @@
-# Build 11 · 2026-09-28T17:49:52Z · success
+# Build 12 · 2026-09-29T14:17:33Z · success
 
 ## Firebase
 Firebase: archivo aplicado (749 bytes)
@@ -20,44 +20,45 @@ Daemon will be stopped at the end of the build
 > Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
 > Task :app:generateDebugBuildConfig
 > Task :app:generateDebugResValues
-> Task :app:checkDebugAarMetadata
 > Task :app:processDebugGoogleServices
+> Task :app:checkDebugAarMetadata
 > Task :app:mapDebugSourceSetPaths
 > Task :app:generateDebugResources
 > Task :app:packageDebugResources
+> Task :app:mergeDebugResources
 > Task :app:createDebugCompatibleScreenManifests
 > Task :app:extractDeepLinksDebug
 > Task :app:parseDebugLocalResources
-> Task :app:mergeDebugResources
 > Task :app:processDebugMainManifest
 > Task :app:processDebugManifest
-> Task :app:processDebugManifestForPackage
 > Task :app:javaPreCompileDebug
 > Task :app:mergeDebugShaders
 > Task :app:compileDebugShaders NO-SOURCE
 > Task :app:generateDebugAssets UP-TO-DATE
 > Task :app:mergeDebugAssets
 > Task :app:compressDebugAssets
-> Task :app:processDebugResources
-> Task :app:l8DexDesugarLibDebug
 > Task :app:desugarDebugFileDependencies
-> Task :app:mergeDebugStartupProfile
-> Task :app:mergeDebugJniLibFolders
+> Task :app:l8DexDesugarLibDebug
+> Task :app:processDebugManifestForPackage
 > Task :app:checkDebugDuplicateClasses
-> Task :app:mergeDebugNativeLibs
-> Task :app:kspDebugKotlin
+> Task :app:mergeDebugStartupProfile
+> Task :app:processDebugResources
 > Task :app:mergeExtDexDebug
+> Task :app:mergeDebugJniLibFolders
 > Task :app:mergeLibDexDebug
+> Task :app:mergeDebugNativeLibs
+> Task :app:validateSigningDebug
+> Task :app:writeDebugAppMetadata
+> Task :app:writeDebugSigningConfigVersions
 
 > Task :app:stripDebugDebugSymbols
 Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so, libdatastore_shared_counter.so, libsqlcipher.so.
 
-> Task :app:validateSigningDebug
-> Task :app:writeDebugAppMetadata
-> Task :app:writeDebugSigningConfigVersions
+> Task :app:kspDebugKotlin
 > Task :app:compileDebugKotlin
 w: file:///home/runner/work/iglesia-management-app/iglesia-management-app/app/src/main/java/com/iglesiaflow/gestion/ui/components/FormComponents.kt:106:18 'fun Modifier.menuAnchor(): Modifier' is deprecated. Use overload that takes MenuAnchorType and enabled parameters.
-w: file:///home/runner/work/iglesia-management-app/iglesia-management-app/app/src/main/java/com/iglesiaflow/gestion/ui/screens/dashboard/DashboardScreen.kt:96:41 'val Icons.Filled.TrendingUp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingUp.
+w: file:///home/runner/work/iglesia-management-app/iglesia-management-app/app/src/main/java/com/iglesiaflow/gestion/ui/navigation/Destinations.kt:30:57 'val Icons.Filled.FactCheck: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.FactCheck.
+w: file:///home/runner/work/iglesia-management-app/iglesia-management-app/app/src/main/java/com/iglesiaflow/gestion/ui/screens/dashboard/DashboardScreen.kt:97:41 'val Icons.Filled.TrendingUp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingUp.
 
 > Task :app:compileDebugJavaWithJavac
 > Task :app:hiltAggregateDepsDebug
@@ -71,7 +72,7 @@ w: file:///home/runner/work/iglesia-management-app/iglesia-management-app/app/sr
 > Task :app:packageDebug
 > Task :app:createDebugApkListingFileRedirect
 > Task :app:assembleDebug
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_5-1790617311657.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_5-1790690977486.json
 
 BUILD SUCCESSFUL in 4m 5s
 44 actionable tasks: 44 executed
@@ -110,25 +111,26 @@ Unable to strip the following libraries, packaging them as they are: libandroidx
 > Task :app:extractProguardFiles
 > Task :app:mergeReleaseStartupProfile
 > Task :app:mergeReleaseShaders
-> Task :app:processReleaseManifestForPackage
 > Task :app:compileReleaseShaders NO-SOURCE
 > Task :app:generateReleaseAssets UP-TO-DATE
 > Task :app:mergeReleaseAssets
 > Task :app:compressReleaseAssets
 > Task :app:extractReleaseVersionControlInfo
 > Task :app:processApplicationManifestReleaseForBundle
+> Task :app:mergeReleaseResources
 > Task :app:collectReleaseDependencies
 > Task :app:sdkReleaseDependencyData
 > Task :app:validateSigningRelease
 > Task :app:writeReleaseAppMetadata
 > Task :app:writeReleaseSigningConfigVersions
-> Task :app:mergeReleaseResources
+> Task :app:processReleaseManifestForPackage
 > Task :app:processReleaseResources
 > Task :app:bundleReleaseResources
 > Task :app:kspReleaseKotlin
 > Task :app:compileReleaseKotlin
 w: file:///home/runner/work/iglesia-management-app/iglesia-management-app/app/src/main/java/com/iglesiaflow/gestion/ui/components/FormComponents.kt:106:18 'fun Modifier.menuAnchor(): Modifier' is deprecated. Use overload that takes MenuAnchorType and enabled parameters.
-w: file:///home/runner/work/iglesia-management-app/iglesia-management-app/app/src/main/java/com/iglesiaflow/gestion/ui/screens/dashboard/DashboardScreen.kt:96:41 'val Icons.Filled.TrendingUp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingUp.
+w: file:///home/runner/work/iglesia-management-app/iglesia-management-app/app/src/main/java/com/iglesiaflow/gestion/ui/navigation/Destinations.kt:30:57 'val Icons.Filled.FactCheck: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.FactCheck.
+w: file:///home/runner/work/iglesia-management-app/iglesia-management-app/app/src/main/java/com/iglesiaflow/gestion/ui/screens/dashboard/DashboardScreen.kt:97:41 'val Icons.Filled.TrendingUp: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.TrendingUp.
 
 > Task :app:compileReleaseJavaWithJavac
 > Task :app:hiltAggregateDepsRelease FROM-CACHE
@@ -183,7 +185,7 @@ Info: Proguard configuration rule does not match anything: `-keepclassmembers cl
 > Task :app:packageRelease
 > Task :app:createReleaseApkListingFileRedirect
 > Task :app:assembleRelease
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_6-1790617555934.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_6-1790691221685.json
 
-BUILD SUCCESSFUL in 3m 50s
+BUILD SUCCESSFUL in 3m 44s
 54 actionable tasks: 48 executed, 6 from cache
