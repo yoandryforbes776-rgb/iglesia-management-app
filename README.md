@@ -48,8 +48,8 @@ Las APKs firmadas se generan automáticamente en GitHub Actions y se publican en
 **[Releases](../../releases)** (`IglesiaFlow-release.apk`). También quedan disponibles como
 artefacto de cada ejecución del workflow *Android CI*.
 
-Credenciales de demostración: `admin@iglesia.org` / `admin123`
-(ver todas en [docs/MANUAL_USUARIO.md](docs/MANUAL_USUARIO.md)).
+La app abre directamente como **Administrador**: no pide usuario ni contraseña
+(ver [docs/MANUAL_USUARIO.md](docs/MANUAL_USUARIO.md)).
 
 ## 🛠️ Compilar en local
 

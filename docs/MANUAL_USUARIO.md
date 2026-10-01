@@ -3,19 +3,13 @@
 ## 1. Primeros pasos
 
 1. Instala `IglesiaFlow-release.apk` (permite "instalar apps de orígenes desconocidos" la primera vez).
-2. Abre la app e inicia sesión con una de las cuentas de demostración:
-
-   | Usuario | Contraseña | Rol |
-   |---------|-----------|-----|
-   | `admin@iglesia.org` | `admin123` | Administrador (acceso total) |
-   | `pastor@iglesia.org` | `pastor123` | Pastor |
-   | `tesorero@iglesia.org` | `tesoro123` | Tesorero |
-   | `lider@iglesia.org` | `lider123` | Líder de ministerio |
-
-3. **Cambia las contraseñas** en *Administración → Usuarios* antes de usarla de verdad.
+2. Abre la app: **no hay pantalla de acceso ni contraseña**. La app entra sola con el perfil
+   **Administrador** (acceso total) tras una breve pantalla de bienvenida.
+3. Los usuarios siguen existiendo en *Administración → Usuarios* para registrar quién es quién
+   (pastor, tesorero, líderes), pero no se usan para entrar.
 4. Personaliza la iglesia en *Administración → Apariencia e idioma* (nombre, logo, colores, idioma, moneda).
 
-La barra inferior da acceso a Inicio, Miembros, Finanzas y Eventos; el resto de módulos están en el
+La barra inferior da acceso a Inicio, Miembros, Asistencias y Eventos; el resto de módulos están en el
 menú lateral (icono ☰).
 
 ## 2. Inicio (dashboard)
@@ -126,11 +120,11 @@ el selector de Android (correo, Drive, WhatsApp…).
 
 La asistencia se marca como siempre desde **Eventos → abrir el evento → lista de asistentes**.
 
-## Seguridad de la sesión
+## Sesión
 
-La sesión se cierra sola tras **30 minutos sin usar la app**. Cualquier toque en la pantalla
-reinicia la cuenta atrás, así que si sigues trabajando nunca te echará fuera. Al volver verás el
-aviso "Tu sesión se cerró automáticamente" en la pantalla de acceso.
+A petición de la iglesia, la app **no pide usuario ni contraseña** y **no se cierra sola**:
+al abrirla entras directamente como Administrador. Si en el futuro quieres volver a proteger
+la app, usa el bloqueo de pantalla del teléfono o pídenos reactivar el acceso con contraseña.
 
 ## Mensajes del muro de un grupo
 

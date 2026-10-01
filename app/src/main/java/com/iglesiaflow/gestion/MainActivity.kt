@@ -19,7 +19,7 @@ import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.iglesiaflow.gestion.ui.RootViewModel
 import com.iglesiaflow.gestion.ui.navigation.AppShell
-import com.iglesiaflow.gestion.ui.screens.auth.LoginScreen
+import com.iglesiaflow.gestion.ui.screens.SplashScreen
 import com.iglesiaflow.gestion.ui.theme.IglesiaFlowTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -27,12 +27,6 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private val rootViewModel: RootViewModel by viewModels()
-
-    /** Cada toque en pantalla renueva los 30 minutos de sesión. */
-    override fun onUserInteraction() {
-        super.onUserInteraction()
-        rootViewModel.touch()
-    }
 
     private val notificationPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
@@ -45,11 +39,6 @@ class MainActivity : AppCompatActivity() {
         if (!granted) notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
     }
 
-    override fun onResume() {
-        super.onResume()
-        rootViewModel.touch()
-    }
-
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,27 +48,18 @@ class MainActivity : AppCompatActivity() {
             val viewModel: RootViewModel = rootViewModel
             val settings by viewModel.settings.collectAsStateWithLifecycle()
             val user by viewModel.currentUser.collectAsStateWithLifecycle()
-            val sessionExpired by viewModel.sessionExpired.collectAsStateWithLifecycle()
             val windowSizeClass = calculateWindowSizeClass(this)
 
             IglesiaFlowTheme(settings = settings) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     val currentUser = user
                     if (currentUser == null) {
-                        LoginScreen(
-                            settings = settings,
-                            notice = if (sessionExpired) {
-                                "Tu sesión se cerró automáticamente tras 30 minutos sin actividad."
-                            } else {
-                                null
-                            }
-                        )
+                        SplashScreen(settings = settings)
                     } else {
                         AppShell(
                             settings = settings,
                             user = currentUser,
-                            widthSizeClass = windowSizeClass.widthSizeClass,
-                            onLogout = viewModel::logout
+                            widthSizeClass = windowSizeClass.widthSizeClass
                         )
                     }
                 }

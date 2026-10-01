@@ -31,7 +31,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -76,7 +77,10 @@ fun AppearanceScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                ),
                 title = { Text("Apariencia e idioma") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
@@ -170,19 +174,6 @@ fun AppearanceScreen(
                 }
             }
 
-            item {
-                SectionCard(title = "Sesión") {
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        listOf(15, 30, 60, 120).forEach { minutes ->
-                            FilterChip(
-                                selected = settings.sessionTimeoutMinutes == minutes,
-                                onClick = { viewModel.setSessionTimeout(minutes) },
-                                label = { Text("$minutes min") }
-                            )
-                        }
-                    }
-                }
-            }
         }
     }
 }

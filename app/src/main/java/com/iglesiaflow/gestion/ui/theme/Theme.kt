@@ -46,17 +46,57 @@ fun IglesiaFlowTheme(
         )
     }
 
+    // Capa "iOS": fondo agrupado gris, tarjetas blancas (o negras en oscuro) y
+    // separadores finos, manteniendo el color de marca elegido por la iglesia.
+    val iosScheme = if (darkTheme) {
+        colorScheme.copy(
+            background = IosGroupedBackgroundDark,
+            onBackground = IosLabelDark,
+            surface = IosCardDark,
+            onSurface = IosLabelDark,
+            surfaceVariant = IosCardElevatedDark,
+            onSurfaceVariant = IosGray,
+            surfaceContainerLowest = IosGroupedBackgroundDark,
+            surfaceContainerLow = IosCardDark,
+            surfaceContainer = IosCardDark,
+            surfaceContainerHigh = IosCardElevatedDark,
+            surfaceContainerHighest = IosCardElevatedDark,
+            outline = IosGray,
+            outlineVariant = IosSeparatorDark,
+            error = IosRed
+        )
+    } else {
+        colorScheme.copy(
+            background = IosGroupedBackground,
+            onBackground = IosLabel,
+            surface = IosCard,
+            onSurface = IosLabel,
+            surfaceVariant = IosCard,
+            onSurfaceVariant = IosGray,
+            surfaceContainerLowest = IosCard,
+            surfaceContainerLow = IosCard,
+            surfaceContainer = IosCard,
+            surfaceContainerHigh = IosGroupedBackground,
+            surfaceContainerHighest = IosGroupedBackground,
+            outline = IosGray,
+            outlineVariant = IosSeparator,
+            error = IosRed
+        )
+    }
+
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as? Activity)?.window ?: return@SideEffect
-            window.statusBarColor = Color.Transparent.toArgb()
+            window.statusBarColor = iosScheme.background.toArgb()
+            window.navigationBarColor = iosScheme.surface.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = !darkTheme
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }
 
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = iosScheme,
         typography = AppTypography,
         shapes = AppShapes,
         content = content

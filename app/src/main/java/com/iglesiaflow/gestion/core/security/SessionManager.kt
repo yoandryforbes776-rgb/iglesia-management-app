@@ -5,7 +5,9 @@ import com.iglesiaflow.gestion.data.local.dao.AdminDao
 import com.iglesiaflow.gestion.data.local.entity.UserEntity
 import com.iglesiaflow.gestion.domain.model.Permission
 import com.iglesiaflow.gestion.domain.model.UserRole
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
@@ -39,6 +41,39 @@ class SessionManager @Inject constructor(
 
     private var pendingUser: UserEntity? = null
     private var lastActivityAt: Long = System.currentTimeMillis()
+
+    /**
+     * La app entra directamente como administrador: no hay pantalla de acceso.
+     * Se usa el usuario administrador de la base de datos y, si todavía no
+     * existe, una sesión con todos los permisos para no bloquear el arranque.
+     */
+    suspend fun ensureAutoSession() {
+        if (_currentUser.value != null) return
+        var candidate: UserEntity? = null
+        var attempts = 0
+        while (candidate == null && attempts < WAIT_ATTEMPTS) {
+            val users = adminDao.observeUsers().first()
+            candidate = users.firstOrNull { it.active && it.email == DEFAULT_ADMIN_EMAIL }
+                ?: users.firstOrNull { it.active && it.role == UserRole.ADMINISTRADOR }
+                ?: users.firstOrNull { it.active }
+            if (candidate == null) delay(WAIT_DELAY_MS)
+            attempts++
+        }
+        val user = candidate
+        if (user != null) {
+            establishSession(user)
+        } else {
+            _currentUser.value = SessionUser(
+                id = 0L,
+                name = "Administrador",
+                email = DEFAULT_ADMIN_EMAIL,
+                role = UserRole.ADMINISTRADOR,
+                memberId = null,
+                permissions = Permission.entries.toSet()
+            )
+            lastActivityAt = System.currentTimeMillis()
+        }
+    }
 
     suspend fun login(email: String, password: String): LoginResult {
         val user = adminDao.findByEmail(email.trim().lowercase())
@@ -115,4 +150,10 @@ class SessionManager @Inject constructor(
     fun requireUserName(): String = _currentUser.value?.name ?: "sistema"
 
     fun currentUserId(): Long? = _currentUser.value?.id
+
+    private companion object {
+        const val DEFAULT_ADMIN_EMAIL = "admin@iglesia.org"
+        const val WAIT_ATTEMPTS = 12
+        const val WAIT_DELAY_MS = 350L
+    }
 }
